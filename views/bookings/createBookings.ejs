@@ -1,0 +1,75 @@
+<!-- Konten utama -->
+      <div class="flex-1 flex flex-col ml-64">
+        <!-- Navbar -->
+        <nav class="bg-white shadow-md p-4 flex justify-between items-center fixed top-0 right-0 left-64 z-10">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-800">Bookings Management</h1>
+            <p class="text-gray-500 text-sm">Kelola data Peminjaman</p>
+          </div>
+          <div class="flex items-center gap-4">
+            <!-- Logout -->
+            <a href="#" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-200 flex items-center gap-2">
+              <i class="fa-solid fa-right-from-bracket"></i>
+              <span class="hidden md:inline">Logout</span>
+            </a>
+          </div>
+        </nav>
+
+        <!-- Isi konten -->
+        <main class="p-6 overflow-y-auto mt-20 h-screen">
+          <div class="bg-white p-6 pb-20 rounded-xl shadow-lg flex justify-center items-center flex-col">
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="text-xl font-bold text-gray-800">Create New Bookings</h3>
+            </div>
+
+            <!-- Form -->
+            <form action="/bookings/create" method="post" class="space-y-4 w-[500px] mx-auto">
+              <!-- User -->
+              <div>
+                <label class="block text-gray-600 mb-1">Pilih User</label>
+                <select name="user_id" class="w-full border px-3 py-2 rounded-lg">
+                  <% users.forEach(user => { %>
+                  <option value="<%= user.id %>"><%= user.name %></option>
+                  <% }) %>
+                </select>
+              </div>
+
+              <!-- Buku -->
+              <div>
+                <label class="block text-gray-600 mb-1">Pilih Buku</label>
+                <div class="grid grid-cols-2 gap-2">
+                  <% books.forEach(book => { %>
+                  <label class="flex items-center gap-2">
+                    <input type="checkbox" name="book_ids" value="<%= book.id %>" />
+                    <span><%= book.title %></span>
+                  </label>
+                  <% }) %>
+                </div>
+              </div>
+
+              <!-- Tanggal -->
+              <div class="flex gap-1">
+                <div class="flex-1">
+                  <label>Selesai</label>
+                  <input type="date" name="end_date" class="w-full border px-3 py-2 rounded-lg" />
+                </div>
+              </div>
+              <div class="flex justify-between">
+                <!-- Cancel -->
+                <a href="/bookings" type="button" class="px-5 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">Cancel</a>
+                <!-- Submit -->
+                <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Simpan</button>
+              </div>
+              <% if (pesan) { %>
+                <!-- Alert Error -->
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                  <strong class="font-bold">Error!</strong>
+                  <span class="block sm:inline"> <%= pesan %></span>
+                  <span class="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer" onclick="this.parentElement.style.display='none'">✖</span>
+                </div>
+                <% } %>
+            </form>
+          </div>
+        </main>
+      </div>

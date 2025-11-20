@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 to-blue-100 p-4">
+    <div class="flex w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden flex-col md:flex-row border-2 border-red-300">
+      <!-- Image Section -->
+      <div class="hidden md:flex flex-1 bg-gradient-to-br from-blue-600 to-indigo-700 p-12 relative items-center justify-center min-h-[500px]">
+        <div class="absolute w-72 h-72 bg-white opacity-10 rounded-full -top-12 -right-12"></div>
+
+        <div class="text-center text-white z-10">
+          <svg class="w-48 h-48 mx-auto mb-6" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="100" cy="100" r="80" stroke="white" stroke-width="4" fill="none" opacity="0.3" />
+            <circle cx="100" cy="100" r="60" stroke="white" stroke-width="4" fill="none" opacity="0.5" />
+            <path d="M100 40 L100 100 L140 100" stroke="white" stroke-width="6" stroke-linecap="round" />
+            <circle cx="100" cy="100" r="8" fill="white" />
+          </svg>
+
+          <h2 class="text-3xl font-bold mb-3">Selamat Datang</h2>
+          <p class="text-lg opacity-90">Masuk untuk melanjutkan ke dashboard Anda</p>
+        </div>
+      </div>
+
+      <!-- Login Section -->
+      <div class="flex-1 p-12 md:p-16 flex flex-col justify-center">
+        <div class="mb-10 text-center">
+          <h1 class="text-4xl font-bold text-gray-800 mb-2">Login</h1>
+          <p class="text-gray-600">Masukkan kredensial Anda untuk masuk</p>
+        </div>
+
+        <form action="/login" method="post">
+          <!-- Email Input -->
+          <div class="mb-6">
+            <label for="email" class="block text-gray-700 font-medium mb-2 text-sm">Email</label>
+            <input type="email" id="email" name="email" placeholder="nama@email.com" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-purple-600 transition-colors" />
+          </div>
+
+          <!-- Password Input -->
+          <div class="mb-6">
+            <label for="password" class="block text-gray-700 font-medium mb-2 text-sm">Password</label>
+            <input type="password" name="password" id="password" placeholder="••••••••" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-600 transition-colors" />
+          </div>
+          <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-3 rounded-xl font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200">Masuk</button>
+        </form>
+        <% if (pesan) { %>
+        <!-- Alert Error -->
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 mt-6" role="alert">
+          <strong class="font-bold">Error!</strong>
+          <span class="block sm:inline"><%= pesan %></span>
+          <span class="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer" onclick="this.parentElement.style.display='none'">✖</span>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </body>
+</html>
