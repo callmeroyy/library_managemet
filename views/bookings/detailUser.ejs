@@ -1,0 +1,132 @@
+<!-- Konten utama -->
+<div class="flex-1 flex flex-col ml-64">
+  <!-- Navbar -->
+  <nav class="bg-white shadow-md p-4 flex justify-between items-center fixed top-0 right-0 left-64 z-10">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">Bookings Management</h1>
+      <p class="text-gray-500 text-sm">Kelola data Peminjaman</p>
+    </div>
+    <div class="flex items-center gap-4">
+      <!-- Logout -->
+      <a href="#" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-200 flex items-center gap-2">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        <span class="hidden md:inline">Logout</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Isi konten -->
+  <main class="p-6 md:p-10 overflow-y-auto mt-20">
+    <!-- Profile Card -->
+    <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition duration-300 mb-6">
+      <div class="flex items-center p-6 md:p-8">
+        <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white w-20 h-20 rounded-full flex items-center justify-center shadow-lg mr-6">
+          <i class="fa-solid fa-user text-white text-4xl"></i>
+        </div>
+        <div>
+          <h2 class="text-xl md:text-2xl font-semibold text-gray-800"><%= result[0].name %></h2>
+          <p class="text-gray-600 text-sm md:text-base"><%= result[0].email %></p>
+          <div class="flex items-center gap-2 mt-2">
+          <% if (result[0].is_active == 1) { %>
+            <span class="bg-green-100 text-green-700 text-xs font-medium px-3 py-1 rounded-full">Active Member</span>
+          <% } else {%>
+            <span class="bg-green-100 text-red-700 text-xs font-medium px-3 py-1 rounded-full">Nonactive</span>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Statistics Grid -->
+    <div class="grid sm:grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Buku yang Masih Dipinjam -->
+      <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition duration-300 p-6 flex flex-col h-full">
+         
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-3">
+            <div class="bg-blue-100 p-3 rounded-lg">
+              <i class="fa-solid fa-book-open text-blue-600 text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800">Buku yang Masih Dipinjam</h3>
+          </div>
+          <span class="bg-blue-500 text-white text-xl font-bold px-4 py-2 rounded-lg"><%= totalDipinjam %></span>
+        </div>
+          
+        <div class="space-y-3 mt-6 flex-grow">
+          <% if (result.length > 0 && result[0].start_date != null) { %>
+            <% result.forEach(book => { %>
+              <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                <div class="flex items-center gap-3">
+                  <i class="fa-solid fa-book text-blue-500"></i>
+                  <div>
+                    <p class="font-medium text-gray-800">
+                      <%= book.title %>
+                      <span class="opacity-50">( <%= book.isbn %> )</span>
+                    </p>
+                    <p class="text-xs text-gray-500">Dipinjam: <%= book.startDate %></p>
+                  </div>
+                </div>
+  
+                <% if (book.remainingTime >= 0) { %> <% if (book.remainingTime > 2) { %>
+                <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded"><%= book.remainingTime %> hari lagi</span>
+                <% } else {%>
+                <span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded"><%= book.remainingTime %> hari lagi</span>
+                <% } %> <% } else { %>
+                <span class="text-xs bg-red-100 text-red-700 px-2 py-1 rounded">Terlambat <%= book.dayPenalty %> hari</span>
+                <% } %>
+              </div>
+             <% }) %> 
+            <% } else { %>
+              <h2 class="text-xl font-semibold text-gray-800">User tidak sedang meminjam buku</h2>
+              <p class="text-gray-600">Tidak ada data peminjaman aktif.</p>
+
+           <% } %>
+        </div>
+
+        <button class="w-full mt-4 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg transition duration-200 font-medium">Lihat Semua</button>
+      </div>
+
+      <!-- Buku yang Sudah Dikembalikan -->
+      <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition duration-300 p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-3">
+            <div class="bg-green-100 p-3 rounded-lg">
+              <i class="fa-solid fa-check-circle text-green-600 text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800">Buku yang Sudah Dikembalikan</h3>
+          </div>
+          <span class="bg-green-500 text-white text-xl font-bold px-4 py-2 rounded-lg">12</span>
+        </div>
+
+        <div class="space-y-3 mt-6">
+          <% if (bookReturn.length > 0) { %>
+            <% bookReturn.forEach(book => { %>
+              <!-- Item Buku Kembali 1 -->
+              <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                <div class="flex items-center gap-3">
+                  <i class="fa-solid fa-circle-check text-green-500"></i>
+                  <div>
+                    <p class="font-medium text-gray-800"><%= book.books %></p>
+                    <p class="text-xs text-gray-500">Tanggal Kembali: <%= book.endDate %>  || Dikembalikan: <%= book.actualReturnDate   %></p>
+                  </div>
+                </div>
+                <% if (book.status == "Tepat Waktu") { %>
+                  <span class="inline-flex items-center text-xs bg-green-100 text-green-700 px-2 py-1 rounded whitespace-nowrap">
+                    Tepat waktu
+                  </span>
+                <% } else if (book.status == "Terlambat"){%>
+                  <span class="text-xs bg-red-100 text-red-700 px-2 py-1 rounded">Terlambat</span>
+                  <% } else { %>
+                    <span class="text-xs bg-red-100 text-yellow-700 px-2 py-1 rounded">sedang Dipinjam</span>
+                    <% } %>
+              </div>
+            <% }) %>
+          <% } else {%>
+            <h2 class="text-xl font-semibold text-gray-800">User tidak mempunyai riwawt mengembalikan buku</h2>
+            <p class="text-gray-600">Tidak ada data pengembalian buku.</p>
+          <% } %>
+        <button class="w-full mt-4 bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg transition duration-200 font-medium">Lihat Riwayat Lengkap</button>
+      </div>
+    </div>
+  </main>
+</div>

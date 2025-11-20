@@ -1,0 +1,97 @@
+<!-- Konten utama -->
+<div class="flex-1 flex flex-col ml-64">
+  <!-- Navbar -->
+  <nav class="bg-white shadow-md p-4 flex justify-between items-center fixed top-0 right-0 left-64 z-10">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">Bookings Management</h1>
+      <p class="text-gray-500 text-sm">Kelola data Peminjaman</p>
+    </div>
+    <div class="flex items-center gap-4">
+      <!-- Logout -->
+      <a href="#" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-200 flex items-center gap-2">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        <span class="hidden md:inline">Logout</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Isi konten -->
+  <main class="p-6 overflow-y-auto mt-20 h-screen">
+    <div class="bg-white p-6 pb-20 rounded-xl shadow-lg flex justify-center items-center flex-col">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="text-xl font-bold text-gray-800">Return Bookings</h3>
+      </div>
+
+      <!-- Form -->
+      <form action="/bookings/returnBook" method="post" class="space-y-4 w-[500px] mx-auto">
+        <input type="hidden" name="id" value="<%= id %>">
+        <!-- User -->
+        <div>
+          <label class="mb-2 block font-medium text-gray-700">Nama :</label>  <!-- Tambah block dan styling -->
+          <p class="w-full text-gray-600 border px-3 py-2 rounded-lg bg-gray-50"><%= name %></p>  <!-- Tambah bg-gray-50 -->
+        </div>
+
+        <!-- Buku -->
+        <div>
+          <label class="mb-2 block font-medium text-gray-700">Buku :</label>  <!-- Perbaiki typo dan tambah styling -->
+          <div class="grid grid-cols-2 gap-2 w-full border px-3 py-2 rounded-lg bg-gray-50">  <!-- Tambah bg-gray-50 -->
+              <% books.forEach((r, index) => { %>
+                 <p class="text-gray-600"><%= index + 1 %>. <%= r.title %></p>
+              <% }) %>
+          </div>
+        </div>
+        
+        <!-- penalty_fee -->
+        <div>
+          <label class="mb-2 block font-medium text-gray-700">Denda :</label>
+          <div class="w-full border px-3 py-2 rounded-lg bg-gray-50 space-y-2">  <!-- Tambah bg-gray-50 dan space-y-2 -->
+           <div class="flex justify-between">
+             <span class="text-gray-600">Denda Per Hari:</span>
+             <span class="text-gray-800 font-semibold">Rp <%= penalty_fee %></span>
+           </div>
+           <div class="flex justify-between">
+             <span class="text-gray-600">Jumlah Buku Yang Dipinjam:</span>
+             <span class="text-gray-800 font-semibold"><%= totalBooks %> Buku</span>
+           </div>
+           <div class="flex justify-between">
+             <span class="text-gray-600">Jumlah Hari Terlambat:</span>
+             <span class="<%= dayPenalty > 0 ? 'text-red-500' : 'text-green-500' %> font-semibold"><%= dayPenalty %> Hari</span>
+           </div>
+           <hr class="border-gray-200">
+           <div class="flex justify-between">
+             <span class="text-gray-600">Total Denda:</span>
+             <span class="text-red-500 font-bold">Rp <%= fee %></span>
+             <input type="hidden" name="fee" value="<%= fee %>">
+           </div>
+          </div>
+        </div>
+
+        <!-- Tanggal -->
+        <div class="flex grid grid-cols-2 gap-4">  <!-- Ubah gap-1 ke gap-4 -->
+          <div class="flex-1">
+            <label class="mb-2 block font-medium text-gray-700">Waktu Peminjaman :</label>
+            <p class="w-full text-gray-600 mt-2 border px-3 py-2 rounded-lg bg-gray-50"><%= startDate %></p>
+          </div>
+          <div class="flex-1">
+            <label class="mb-2 block font-medium text-gray-700">Waktu Pengembalian :</label>
+            <p class="w-full text-gray-600 border mt-2 px-3 py-2 rounded-lg bg-gray-50"><%= endDate %></p>
+          </div>
+        </div>
+        <div class="flex gap-4">  <!-- Ubah gap-1 ke gap-4 -->
+          <div class="flex-1">
+            <label class="mb-2 block font-medium text-gray-700">Waktu Dikembalikan :</label>
+            <p class="w-full text-gray-600 text-center mt-2 border px-3 py-2 rounded-lg bg-gray-50"><%= actualDate %></p>
+          </div>
+        </div>
+        <div class="flex justify-between gap-4">  <!-- Tambah gap-4 -->
+          <!-- Cancel -->
+           <a href="/bookings" type="button" class="px-5 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">Cancel</a>
+          <!-- Submit -->
+          <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Confirm</button>
+        </div>
+      
+      </form>
+    </div>
+  </main>
+</div>

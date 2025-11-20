@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Buku</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+  </head>
+  <body class="bg-gray-300 overflow-hidden">
+    <div class="flex h-screen">
+      <!-- Sidebar -->
+      <aside class="w-64 bg-gradient-to-b from-gray-800 to-gray-900 shadow-2xl h-screen p-6 text-white fixed left-0 top-0">
+        <!-- Logo/Header -->
+        <div class="text-center mb-8">
+          <div class="bg-blue-500 w-16 h-16 rounded-full mx-auto mb-3 flex items-center justify-center">
+            <i class="fa-solid fa-book-open text-2xl"></i>
+          </div>
+          <h2 class="text-2xl font-bold">Perpustakaan</h2>
+          <p class="text-gray-400 text-sm">Admin Panel</p>
+        </div>
+
+        <!-- Menu -->
+        <ul class="space-y-2">
+          <li>
+            <a href="#" class="flex items-center gap-3 p-3 hover:bg-gray-700 rounded-lg transition duration-200">
+              <i class="fa-solid fa-house w-5"></i>
+              <span class="font-medium">Dashboard</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="flex items-center gap-3 p-3 hover:bg-gray-700 rounded-lg transition duration-200">
+              <i class="fa-solid fa-users w-5"></i>
+              <span class="font-medium">Users</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="flex items-center gap-3 p-3 hover:bg-gray-700 rounded-lg transition duration-200">
+              <i class="fa-solid fa-tags w-5"></i>
+              <span class="font-medium">Kategori</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="flex items-center gap-3 p-3 hover:bg-blue-500 rounded-lg transition duration-200 bg-blue-600">
+              <i class="fa-solid fa-book w-5"></i>
+              <span class="font-medium">Buku</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="flex items-center gap-3 p-3 hover:bg-gray-700 rounded-lg transition duration-200">
+              <i class="fa-solid fa-handshake w-5"></i>
+              <span class="font-medium">Peminjaman</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="flex items-center gap-3 p-3 hover:bg-gray-700 rounded-lg transition duration-200">
+              <i class="fa-solid fa-gear w-5"></i>
+              <span class="font-medium">Settings</span>
+            </a>
+          </li>
+        </ul>
+      </aside>
+
+      <!-- Konten utama -->
+      <div class="flex-1 flex flex-col ml-64">
+        <!-- Navbar -->
+        <nav class="bg-white shadow-md p-4 flex justify-between items-center fixed top-0 right-0 left-64 z-10">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-800">Manajemen Buku</h1>
+            <p class="text-gray-500 text-sm">Kelola koleksi buku perpustakaan</p>
+          </div>
+          <div class="flex items-center gap-4">
+            <!-- Logout -->
+            <a href="#" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-200 flex items-center gap-2">
+              <i class="fa-solid fa-right-from-bracket"></i>
+              <span class="hidden md:inline">Logout</span>
+            </a>
+          </div>
+        </nav>
+
+        <!-- Isi konten -->
+        <main class="p-6 overflow-y-auto mt-20 h-screen">
+          <div class="bg-white p-6 pb-20 rounded-xl shadow-lg flex justify-center items-center flex-col">
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="text-xl font-bold text-gray-800">Edit and Create book</h3>
+            </div>
+
+            <!-- bagian bawah -->
+            
+            <!-- Form -->
+            <form action="/books/create" method="post" class="space-y-4 w-[500px]">
+              <div>
+                <div>
+                  <label class="block mt-3 text-gray-600 mb-1">Title Book</label>
+                  <input type="text" name="title" id="title" placeholder="Masukkan title" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                </div>
+                <div>
+                  <label class="block mt-3 text-gray-600 mb-1">Isbn</label>
+                  <input type="text" name="isbn" id="isbn" placeholder="Masukkan ISBN" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                </div>
+                <div class="">
+                  <label class="block text-gray-700 mt-5 mb-2">Masukkan Path Gambar</label>
+                  <input type="text" name="image_path" placeholder="/uploads/books/harry-potter.jpg" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500" />
+                </div>
+                <div class="mt-5 mb-4">
+                    <label for="category_id" class="block text-sm font-medium text-gray-700 mb-2">
+                      Kategori
+                    </label>
+                    <select
+                      id="category_id"
+                      name="category_id"
+                      required
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white "
+                    >
+                      <option value="">-- Pilih Kategori --</option>
+                      <% category.forEach(categories => { %>
+                        <option  value="<%- categories.id %>"><%= categories.name %></option>
+                      <% }) %>
+                    </select>
+                  </div>
+                  <% if (pesan) { %>
+                    <!-- Alert Error -->
+                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                      <strong class="font-bold">Error!</strong>
+                      <span class="block sm:inline"> <%= pesan %></span>
+                      <span class="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer" onclick="this.parentElement.style.display='none'">✖</span>
+                    </div>
+                    <% } %>
+                <!-- Tombol -->
+                <div class="flex justify-end gap-3 pt-4">
+                  <a href="/books" type="button" class="px-5 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">Cancel</a>
+                  <button type="submit" class="px-5 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition">Simpan</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

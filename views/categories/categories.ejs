@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Categories</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+  </head>
+  <body class="bg-gray-300 overflow-hidden">
+    <div class="flex h-screen">
+      <!-- Sidebar -->
+      <aside class="w-64 bg-gradient-to-b from-gray-800 to-gray-900 shadow-2xl h-screen p-6 text-white fixed left-0 top-0">
+        <!-- Logo/Header -->
+        <div class="text-center mb-8">
+          <div class="bg-blue-500 w-16 h-16 rounded-full mx-auto mb-3 flex items-center justify-center">
+            <i class="fa-solid fa-book-open text-2xl"></i>
+          </div>
+          <h2 class="text-2xl font-bold">Perpustakaan</h2>
+          <p class="text-gray-400 text-sm">Admin Panel</p>
+        </div>
+
+        <!-- Menu -->
+        <ul class="space-y-2">
+          <li>
+            <a href="#" class="flex items-center gap-3 p-3 hover:bg-gray-700 rounded-lg transition duration-200">
+              <i class="fa-solid fa-house w-5"></i>
+              <span class="font-medium">Dashboard</span>
+            </a>
+          </li>
+          <li>
+            <a href="/users" class="flex items-center gap-3 p-3 hover:bg-gray-700 rounded-lg transition duration-200">
+              <i class="fa-solid fa-users w-5"></i>
+              <span class="font-medium">Users</span>
+            </a>
+          </li>
+          <li>
+            <a href="/categories" class="flex items-center gap-3 p-3 hover:bg-blue-500 rounded-lg transition duration-200 bg-blue-600">
+              <i class="fa-solid fa-tags w-5"></i>
+              <span class="font-medium">Kategori</span>
+            </a>
+          </li>
+          <li>
+            <a href="/books" class="flex items-center gap-3 p-3 hover:bg-gray-700 rounded-lg transition duration-200">
+              <i class="fa-solid fa-book w-5"></i>
+              <span class="font-medium">Buku</span>
+            </a>
+          </li>
+          <li>
+            <a href="/bookings" class="flex items-center gap-3 p-3 hover:bg-gray-700 rounded-lg transition duration-200">
+              <i class="fa-solid fa-handshake w-5"></i>
+              <span class="font-medium">Peminjaman</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="flex items-center gap-3 p-3 hover:bg-gray-700 rounded-lg transition duration-200">
+              <i class="fa-solid fa-gear w-5"></i>
+              <span class="font-medium">Settings</span>
+            </a>
+          </li>
+        </ul>
+      </aside>
+
+      <!-- Konten utama -->
+      <div class="flex-1 flex flex-col ml-64">
+        <!-- Navbar -->
+        <nav class="bg-white shadow-md p-4 flex justify-between items-center fixed top-0 right-0 left-64 z-10">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-800">Categories Management</h1>
+            <p class="text-gray-500 text-sm">Kelola data Categories</p>
+          </div>
+          <div class="flex items-center gap-4">
+            <!-- Logout -->
+            <form action="/logout" method="POST" style="display:inline;">
+              <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                Logout
+              </button>
+            </form>
+          </div>
+        </nav>
+
+        <!-- Isi konten -->
+        <main class="p-6 overflow-y-auto mt-20 h-screen">
+          <!-- search, reset, create -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-center mb-6">
+            <form action="/categories" method="get" class="">
+              <!--search -->
+              <div class="flex items-center bg-white rounded-full shadow-md overflow-hidden border border-gray-200">
+                <input type="text" placeholder="Cari kategori..." name="keyword" value="<%= nameSearch %>" id="keyword" class="w-full px-4 py-2 text-gray-700 bg-transparent focus:outline-none" />
+                <button type="submit" class="px-4 py-2 bg-indigo-500 text-white font-semibold hover:bg-indigo-600 transition duration-300">
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+              </div>
+            </form>
+            <!-- button reset -->
+            <div class="relative groupv w-[100px] flex items-center">
+              <a href="/categories" class="bg-gray-500 w-full hover:bg-gray-600 text-white px-2 py-2 lg:w-auto justify-between rounded-lg flex items-center gap-2 transition duration-200">
+                <i class="fa-solid fa-rotate-right"></i>
+                Reset
+              </a>
+            </div>
+
+            <!-- create  -->
+            <div class="lg:justify-self-end">
+              <a href="/categories/create" class="bg-blue-500 hover:bg-blue-600 text-white px-5 py-3 rounded-lg font-semibold transition duration-200">
+                <i class="fa-solid fa-plus mr-2"></i>
+                Create Category
+              </a>
+            </div>
+          </div>
+          <!-- Menampilkan category -->
+          <div class="bg-white p-6 rounded-xl shadow-lg">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Categories</h3>
+
+            <!-- Grid list item -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <% if (keywordResult.length > 0) { %> 
+                <% keywordResult.forEach(kategori => { const dataBuku = booksTotal.find(b => b.category_id === kategori.id); %>
+              <li class="list-none">
+                <div class="flex items-center justify-between p-3 bg-blue-50 h-[80px] rounded-lg hover:shadow-md transition duration-200">
+                  <!-- Label kategori -->
+                  <div class="flex items-center gap-3">
+                    <div class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-md text-sm font-semibold border border-yellow-300"><%= kategori.name %></div>
+                    <p><%= dataBuku ? dataBuku.totalBooks : 0 %> books</p>
+                  </div>
+
+                  <!-- Tombol aksi -->
+                  <div class="flex gap-2">
+                    <a href="categories/update?id=<%= kategori.id %>" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition duration-200 flex items-center gap-2">
+                      <i class="fa-solid fa-pen-to-square"></i>
+                      Update
+                    </a> 
+                    <a href="/categories/delete/<%= kategori.id %>" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-200 flex items-center gap-2">
+                      <i class="fa-solid fa-ban"></i>
+                      Delete
+                    </a>
+                  </div>
+                </div>
+              </li>
+
+              <% }); %> <% } else { %>
+              <!-- Pesan jika kosong -->
+              <div class="col-span-2">
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded text-center font-medium">Tidak ada data</div>
+              </div>
+              <% } %>
+            </div>
+
+            <!-- pagenation -->
+            <div class="flex justify-center mt-6 space-x-2">
+              <% for(let i = 1; i <= totalPage; i++) { %>
+              <a href="/categories?page=<%= i %><%= nameSearch ? '&keyword=' + nameSearch : '' %>" class="px-4 py-2 rounded-lg <%= i === page ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' %>"><%= i %></a>
+              <% } %>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>
