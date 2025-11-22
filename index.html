@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detail Buku - Sistem Perpustakaan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .badge {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Back Button -->
+        <button class="mb-6 flex items-center gap-2 text-indigo-600 hover:text-indigo-800 transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Kembali ke Katalog
+        </button>
+
+        <div class="grid lg:grid-cols-3 gap-8">
+            <!-- Left Column - Book Cover & Info -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-2xl shadow-xl overflow-hidden sticky top-8">
+                    <!-- Book Cover -->
+                    <div class="relative">
+                        <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400" 
+                             alt="Cover Buku" 
+                             class="w-full h-96 object-cover">
+                        <div class="absolute top-4 right-4">
+                            <span class="badge px-4 py-2 bg-green-500 text-white font-bold rounded-full shadow-lg">
+                                ✓ Tersedia
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Quick Info -->
+                    <div class="p-6">
+                        <h1 class="text-2xl font-bold text-gray-800 mb-2">The Great Gatsby</h1>
+                        <p class="text-gray-600 mb-4">F. Scott Fitzgerald</p>
+                        
+                        <div class="space-y-3 mb-6">
+                            <div class="flex items-center gap-3">
+                                <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                                </svg>
+                                <span class="text-sm text-gray-600">ISBN: 978-0-7432-7356-5</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                                </svg>
+                                <span class="text-sm text-gray-600">Kategori: Fiksi Klasik</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                <span class="text-sm text-gray-600">Tahun: 1925</span>
+                            </div>
+                        </div>
+
+                        <button class="w-full bg-indigo-600 text-white py-3 rounded-xl font-semibold hover:bg-indigo-700 transition shadow-lg">
+                            📖 Pinjam Buku Ini
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Details & History -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Status Ketersediaan -->
+                <div class="bg-white rounded-2xl shadow-xl p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+                        <svg class="w-7 h-7 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Status Ketersediaan
+                    </h2>
+                    
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div class="bg-gradient-to-br from-green-100 to-green-200 rounded-xl p-4 text-center">
+                            <div class="text-3xl font-bold text-green-700">3</div>
+                            <div class="text-sm text-green-600 mt-1">Tersedia</div>
+                        </div>
+                        <div class="bg-gradient-to-br from-orange-100 to-orange-200 rounded-xl p-4 text-center">
+                            <div class="text-3xl font-bold text-orange-700">2</div>
+                            <div class="text-sm text-orange-600 mt-1">Dipinjam</div>
+                        </div>
+                        <div class="bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl p-4 text-center">
+                            <div class="text-3xl font-bold text-blue-700">5</div>
+                            <div class="text-sm text-blue-600 mt-1">Total Eksemplar</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deskripsi -->
+                <div class="bg-white rounded-2xl shadow-xl p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-3">
+                        <svg class="w-7 h-7 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
+                        </svg>
+                        Deskripsi Buku
+                    </h2>
+                    <p class="text-gray-600 leading-relaxed">
+                        The Great Gatsby adalah novel klasik karya F. Scott Fitzgerald yang menceritakan kisah Jay Gatsby, seorang jutawan misterius di Long Island tahun 1920-an. Novel ini mengeksplorasi tema cinta, kekayaan, dan impian Amerika melalui mata narator Nick Carraway. Dengan prosa yang indah dan karakter yang kompleks, buku ini dianggap sebagai salah satu karya terbesar dalam sastra Amerika.
+                    </p>
+                </div>
+
+                <!-- Riwayat Peminjaman -->
+                <div class="bg-white rounded-2xl shadow-xl p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+                        <svg class="w-7 h-7 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Riwayat Peminjaman
+                    </h2>
+
+                    <!-- Active Loans -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                            <span class="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></span>
+                            Sedang Dipinjam
+                        </h3>
+                        <div class="space-y-3">
+                            <!-- Loan Item 1 -->
+                            <div class="bg-orange-50 border-l-4 border-orange-500 rounded-lg p-4 hover:shadow-md transition">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex items-start gap-4">
+                                        <div class="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                                            AS
+                                        </div>
+                                        <div>
+                                            <h4 class="font-semibold text-gray-800">Ahmad Syahputra</h4>
+                                            <p class="text-sm text-gray-600">NIM: 2021110001</p>
+                                            <div class="flex items-center gap-4 mt-2 text-sm">
+                                                <span class="text-gray-500">
+                                                    📅 Dipinjam: 15 Nov 2025
+                                                </span>
+                                                <span class="text-orange-600 font-medium">
+                                                    ⏰ Jatuh tempo: 29 Nov 2025
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span class="px-3 py-1 bg-orange-200 text-orange-800 text-xs font-semibold rounded-full">
+                                        14 hari lagi
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Loan Item 2 -->
+                            <div class="bg-red-50 border-l-4 border-red-500 rounded-lg p-4 hover:shadow-md transition">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex items-start gap-4">
+                                        <div class="w-12 h-12 bg-gradient-to-br from-red-400 to-red-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                                            SR
+                                        </div>
+                                        <div>
+                                            <h4 class="font-semibold text-gray-800">Siti Rahmawati</h4>
+                                            <p class="text-sm text-gray-600">NIM: 2021110045</p>
+                                            <div class="flex items-center gap-4 mt-2 text-sm">
+                                                <span class="text-gray-500">
+                                                    📅 Dipinjam: 10 Nov 2025
+                                                </span>
+                                                <span class="text-red-600 font-medium">
+                                                    ⚠️ Jatuh tempo: 24 Nov 2025
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span class="px-3 py-1 bg-red-200 text-red-800 text-xs font-semibold rounded-full">
+                                        4 hari lagi
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Completed Loans -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                            <span class="w-3 h-3 bg-green-500 rounded-full"></span>
+                            Riwayat Selesai
+                        </h3>
+                        <div class="space-y-3">
+                            <!-- Completed Item 1 -->
+                            <div class="bg-gray-50 rounded-lg p-4 hover:shadow-md transition">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex items-start gap-4">
+                                        <div class="w-12 h-12 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                                            BP
+                                        </div>
+                                        <div>
+                                            <h4 class="font-semibold text-gray-800">Budi Prasetyo</h4>
+                                            <p class="text-sm text-gray-600">NIM: 2021110023</p>
+                                            <div class="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                                                <span>📅 15 Okt - 29 Okt 2025</span>
+                                                <span class="text-green-600">✓ Dikembalikan tepat waktu</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Completed Item 2 -->
+                            <div class="bg-gray-50 rounded-lg p-4 hover:shadow-md transition">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex items-start gap-4">
+                                        <div class="w-12 h-12 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                                            DW
+                                        </div>
+                                        <div>
+                                            <h4 class="font-semibold text-gray-800">Dewi Wulandari</h4>
+                                            <p class="text-sm text-gray-600">NIM: 2021110067</p>
+                                            <div class="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                                                <span>📅 01 Okt - 13 Okt 2025</span>
+                                                <span class="text-green-600">✓ Dikembalikan tepat waktu</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Completed Item 3 -->
+                            <div class="bg-gray-50 rounded-lg p-4 hover:shadow-md transition">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex items-start gap-4">
+                                        <div class="w-12 h-12 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                                            RH
+                                        </div>
+                                        <div>
+                                            <h4 class="font-semibold text-gray-800">Rina Handayani</h4>
+                                            <p class="text-sm text-gray-600">NIM: 2021110089</p>
+                                            <div class="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                                                <span>📅 20 Sep - 06 Okt 2025</span>
+                                                <span class="text-yellow-600">⚠️ Terlambat 2 hari</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics -->
+                <div class="bg-white rounded-2xl shadow-xl p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+                        <svg class="w-7 h-7 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                        Statistik Peminjaman
+                    </h2>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="bg-indigo-50 rounded-xl p-4">
+                            <div class="text-sm text-indigo-600 mb-1">Total Peminjaman</div>
+                            <div class="text-2xl font-bold text-indigo-700">47 kali</div>
+                        </div>
+                        <div class="bg-purple-50 rounded-xl p-4">
+                            <div class="text-sm text-purple-600 mb-1">Rating Popularitas</div>
+                            <div class="text-2xl font-bold text-purple-700">⭐ 4.8/5</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

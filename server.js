@@ -14,8 +14,6 @@ require("dotenv").config();
 app.use(cookieParser());
 
 
-const emailAdmin = process.env.ADMIN_EMAIL;
-const rawPasswordAdmin = process.env.ADMIN_PASSWORD;
 const jwtSecret = process.env.JWT_SECRET;
 
 // ==================== LOGIN ROUTES ====================
@@ -39,41 +37,46 @@ app.post("/login", (req, res) => {
       return res.render("auth/login", {
         pesan: "Jangan Biarkan kolom inputan kosong!",
       });
-    } 
-
-    if (email === emailAdmin) {  
-      const cocok = bcrypt.compareSync(password, rawPasswordAdmin);
-      if (!cocok) {
-        return res.render("auth/login", {
-          pesan: "Password salah!",
-        });
-      }
-
-      const token = jwt.sign(
-        {role: "admin", email: email },
-        process.env.JWT_SECRET
-      );
-      res.cookie("authToken", token, {
-        httpOnly: true,
-        secure: false,
-        maxAge: 24 * 60 * 60 * 1000,
-      });
-      return res.redirect("/categories");
     }
-    DB.query("SELECT * FROM users", (err, result) => {
+    DB.query("SELECT * FROM users WHERE role = 'admin' AND email = ?", [email], (err,result) => {
       if (err) {
-        console.error("Error login:", err);
-        return res.status(500).send("Terjadi kesalahan pada database.");
-      }
-
-      if (email === result[0].email && password === result[0].password) {
-        res.send("halllo");
-      } else {
-        res.render("auth/login", {
-          pesan: "akun tidak erdaftar!",
+        console.error(err);
+        return res.status(500).json({ message: "DB error" });
+    }
+      if (result.length > 0) {  
+      const cocok = bcrypt.compareSync(password, result[0].password);
+        if (!cocok) {
+          return res.render("auth/login", {
+            pesan: "Password salah!",
+          });
+        }
+  
+        const token = jwt.sign(
+          {role: "admin", email: email },
+          process.env.JWT_SECRET
+        );
+        res.cookie("authToken", token, {
+          httpOnly: true,
+          secure: false,
+          maxAge: 24 * 60 * 60 * 1000,
         });
+        return res.redirect("/categories");
       }
-    });
+      DB.query("SELECT * FROM users", (err, result) => {
+        if (err) {
+          console.error("Error login:", err);
+          return res.status(500).send("Terjadi kesalahan pada database.");
+        }
+  
+        if (email === result[0].email && password === result[0].password) {
+          res.send("halllo");
+        } else {
+          res.render("auth/login", {
+            pesan: "akun tidak erdaftar!",
+          });
+        }
+      });
+    })
   } catch (err) {
     console.error("Error:", err);
     res.status(500).send("Terjadi kesalahan pada server.");
@@ -557,21 +560,30 @@ app.get("/books", authMiddleware, adminAuth, (req, res) => {
     const offset = (page - 1) * limit;
 
     let query = `
-	SELECT 
-	books.*, 
-	categories.name AS category_name 
-	FROM books 
-	JOIN categories ON books.category_id = categories.id 
-	WHERE (title LIKE '%${search}%' OR isbn LIKE '%${search}%')`;
+      SELECT 
+        books.*,
+        categories.name AS category_name,
+        MAX(bookings.id) AS booking_id
+      FROM books
+    LEFT JOIN categories 
+        ON books.category_id = categories.id
+    LEFT JOIN detail_bookings 
+        ON detail_bookings.book_id = books.id
+    LEFT JOIN bookings 
+        ON bookings.id = detail_bookings.booking_id
+        AND bookings.actual_return_date IS NULL
+    WHERE(title LIKE '%${search}%' OR isbn LIKE '%${search}%')
+`;
 
     let queryCount = `SELECT COUNT(*) AS total FROM books WHERE (title LIKE '%${search}%' OR isbn LIKE '%${search}%')`;
 
     if (categoryId) {
-      query += ` AND category_id=${categoryId}`;
+      query += ` AND category_id=${categoryId} `;
       queryCount += ` AND category_id=${categoryId}`;
     }
 
-    query += ` ORDER BY id ASC LIMIT ${limit} OFFSET ${offset}`;
+    query += ` GROUP BY books.id ORDER BY id ASC LIMIT ${limit} OFFSET ${offset}`;
+    console.log("🚀 ~ query:", query)
 
     DB.query(query, (err, searchResult) => {
       if (err) {
@@ -589,8 +601,15 @@ app.get("/books", authMiddleware, adminAuth, (req, res) => {
             return res.status(500).send("Terjadi kesalahan pada server.");
           }
           const totalData = countResult[0].total;
-
           const totalPage = Math.ceil(totalData / limit);
+
+          searchResult.forEach((r) => {
+            if (r.booking_id == null) {
+              r.statusBook = 1;   
+            } else {
+              r.statusBook = 2;
+            }
+          });
 
           res.render("layout", {
             content: "books/index",
