@@ -60,14 +60,15 @@
                   <i class="fa-solid fa-book text-blue-500"></i>
                   <div>
                     <p class="font-medium text-gray-800">
-                      <%= book.title %>
-                      <span class="opacity-50">( <%= book.isbn %> )</span>
+                      <%= book.books %>
+                      <span class="opacity-50">( <%= book.isbns %> )</span>
                     </p>
                     <p class="text-xs text-gray-500">Dipinjam: <%= book.startDate %></p>
                   </div>
                 </div>
   
-                <% if (book.remainingTime >= 0) { %> <% if (book.remainingTime > 2) { %>
+                <% if (book.remainingTime >= 0) { %> 
+                  <% if (book.remainingTime > 2) { %>
                 <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded"><%= book.remainingTime %> hari lagi</span>
                 <% } else {%>
                 <span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded"><%= book.remainingTime %> hari lagi</span>
@@ -82,8 +83,11 @@
 
            <% } %>
         </div>
-
-        <button class="w-full mt-4 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg transition duration-200 font-medium">Lihat Semua</button>
+        <% if (result[0].start_date != null) { %>  
+          <a href="/bookings?keyword=<%= result[0].name %>" class="text-center w-full mt-4 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg transition duration-200 font-medium">Kembalikan</a>
+        <% } else {%>
+          <a href="/bookings/create" class="text-center w-full mt-4 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg transition duration-200 font-medium">Pinjam Buku</a>
+          <% } %>
       </div>
 
       <!-- Buku yang Sudah Dikembalikan -->
@@ -125,7 +129,7 @@
             <h2 class="text-xl font-semibold text-gray-800">User tidak mempunyai riwawt mengembalikan buku</h2>
             <p class="text-gray-600">Tidak ada data pengembalian buku.</p>
           <% } %>
-        <button class="w-full mt-4 bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg transition duration-200 font-medium">Lihat Riwayat Lengkap</button>
+        <!-- <button class="w-full mt-4 bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg transition duration-200 font-medium">Lihat Riwayat Lengkap</button> -->
       </div>
     </div>
   </main>
