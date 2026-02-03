@@ -1,0 +1,174 @@
+<!-- Navbar -->
+<nav class="bg-white shadow-md p-4 flex justify-between items-center fixed top-0 right-0 z-10">
+  <div>
+    <h1 class="text-2xl font-bold text-gray-800">Book Details</h1>
+    <p class="text-gray-500 text-sm">Informasi lengkap dan riwayat buku</p>
+  </div>
+  <div class="flex items-center gap-4">
+    <!-- Logout -->
+    <a href="#" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-200 flex items-center gap-2">
+      <i class="fa-solid fa-right-from-bracket"></i>
+      <span class="hidden md:inline">Logout</span>
+    </a>
+  </div>
+</nav>
+
+<!-- Isi konten -->
+<main class="p-4 md:p-6 mt-20">
+  <div class="mb-6 flex items-center">
+    <a href="/bookings?keyword=&status=books" class="flex items-center gap-2 text-indigo-600 hover:text-indigo-800 transition font-semibold">
+      <i class="fa-solid fa-arrow-left"></i>
+      Kembali ke Katalog
+    </a>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Book Cover & Info -->
+    <div class="lg:col-span-1">
+      <div class="bg-white rounded-2xl shadow-lg overflow-hidden sticky top-24">
+        <div class="relative">
+          <img src="<%= book.image_path %>" alt="<%= book.title %>" class="w-full h-80 sm:h-96 object-cover" />
+          <div class="absolute top-4 right-4">
+            <% if (statusBook == 0) { %>
+              <span class="px-4 py-1.5 bg-green-500 text-white font-bold rounded-full shadow-lg text-xs uppercase tracking-wider">✓ Tersedia</span>
+            <% } else { %>
+              <span class="px-4 py-1.5 bg-red-500 text-white font-bold rounded-full shadow-lg text-xs uppercase tracking-wider">X Dipinjam</span>
+            <% } %>
+          </div>
+        </div>
+
+        <div class="p-6">
+          <h1 class="text-2xl font-bold text-gray-800 mb-4 truncate"><%= book.title %></h1>
+
+          <div class="space-y-3 mb-6">
+            <div class="flex items-center gap-3 text-gray-600">
+              <i class="fa-solid fa-barcode text-indigo-500 w-5"></i>
+              <span class="text-sm font-mono">ISBN: <%= book.isbn %></span>
+            </div>
+            <div class="flex items-center gap-3 text-gray-600">
+              <i class="fa-solid fa-tags text-indigo-500 w-5"></i>
+              <span class="text-sm">Kategori: <%= book.name %></span>
+            </div>
+            <div class="flex items-center gap-3 text-gray-600">
+              <i class="fa-solid fa-calendar text-indigo-500 w-5"></i>
+              <span class="text-sm">Tahun: 1925 (Example)</span>
+            </div>
+          </div>
+          
+          <a href="/bookings/create" class="block w-full text-center bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-bold transition shadow-md">
+            <i class="fa-solid fa-book-open mr-2"></i>
+            Pinjam Buku Ini
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Details and History -->
+    <div class="lg:col-span-2 space-y-6">
+      <!-- Quick Stats -->
+      <div class="bg-white rounded-2xl shadow-md p-6">
+        <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-chart-simple text-indigo-600"></i>
+          Status Unit
+        </h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="bg-green-50 rounded-xl p-4 border border-green-100">
+            <div class="text-2xl font-bold text-green-700">3</div>
+            <div class="text-xs text-green-600 font-medium uppercase">Tersedia</div>
+          </div>
+          <div class="bg-orange-50 rounded-xl p-4 border border-orange-100">
+            <div class="text-2xl font-bold text-orange-700">2</div>
+            <div class="text-xs text-orange-600 font-medium uppercase">Dipinjam</div>
+          </div>
+          <div class="bg-blue-50 rounded-xl p-4 border border-blue-100">
+            <div class="text-2xl font-bold text-blue-700">5</div>
+            <div class="text-xs text-blue-600 font-medium uppercase">Total Unit</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Book Description -->
+      <div class="bg-white rounded-2xl shadow-md p-6">
+        <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-align-left text-indigo-600"></i>
+          Deskripsi
+        </h2>
+        <p class="text-gray-600 leading-relaxed text-sm">
+          Buku ini merupakan salah satu koleksi unggulan di perpustakaan kami. Memberikan wawasan yang mendalam mengenai tema <%= book.name %> dengan narasi yang menggugah. Cocok untuk referensi akademik maupun bacaan ringan berkualitas.
+        </p>
+      </div>
+
+      <!-- Current Peminjam & History -->
+      <div class="bg-white rounded-2xl shadow-md p-6">
+        <h2 class="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+          <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i>
+          Riwayat Peminjaman
+        </h2>
+
+        <!-- Active Peminjam -->
+        <div class="mb-8">
+          <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+            <span class="w-2 h-2 bg-orange-500 rounded-full animate-ping"></span>
+            Sedang Dipinjam
+          </h3>
+
+          <% if (yangPinjam) { %>
+            <% yangPinjam.forEach(peminjam => { 
+                const inisial = peminjam.name.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase();
+            %>
+            <div class="bg-orange-50 border-l-4 border-orange-500 rounded-xl p-4 shadow-sm hover:shadow-md transition">
+              <div class="flex items-start justify-between flex-wrap gap-4">
+                <div class="flex items-start gap-4">
+                  <div class="w-12 h-12 bg-orange-600 rounded-full flex items-center justify-center text-white font-bold shrink-0">
+                    <%= inisial %>
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-gray-800"><%= peminjam.name %></h4>
+                    <p class="text-xs text-gray-500"><%= peminjam.email %></p>
+                    <div class="mt-2 space-y-1">
+                      <p class="text-xs text-gray-600">📅 <span class="font-semibold">Pinjam:</span> <%= startDateForamat %></p>
+                      <p class="text-xs <%= actual.isAfter(dayEnd) ? 'text-red-600 font-bold' : 'text-orange-600 font-semibold' %>">
+                        ⚠️ <span class="font-semibold">Jatuh Tempo:</span> <%= endDateFormat %>
+                        <% if (actual.isAfter(dayEnd)) { %> (Terlambat <%= timeLeft %> Hari) <% } %>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <a href="/bookings/returnBook?id=<%= peminjam.bookings_id %>" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition">Confirm Return</a>
+              </div>
+            </div>
+            <% }) %>
+          <% } else { %>
+            <div class="text-center py-6 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+              <p class="text-gray-400 text-sm italic">Buku tersedia untuk dipinjam.</p>
+            </div>
+          <% } %>
+        </div>
+
+        <!-- History -->
+        <div>
+          <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4">Riwayat Selesai</h3>
+          <div class="space-y-3 max-h-60 overflow-y-auto pr-2">
+            <% if (riwayatPeminjaman && riwayatPeminjaman.length > 0) { %>
+              <% riwayatPeminjaman.forEach(item => { %>
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition border border-gray-100">
+                  <div class="flex items-center gap-3 truncate">
+                    <i class="fa-solid fa-circle-check text-green-500"></i>
+                    <div class="truncate">
+                      <p class="text-sm font-bold text-gray-800 truncate"><%= item.name %></p>
+                      <p class="text-[10px] text-gray-500">📅 <%= item.startDate %> - <%= item.endDate %></p>
+                    </div>
+                  </div>
+                  <span class="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded uppercase">Selesai</span>
+                </div>
+              <% }) %>
+            <% } else { %>
+              <p class="text-center py-4 text-gray-400 text-xs italic">Belum ada riwayat sebelumnya.</p>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>

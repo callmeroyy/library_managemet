@@ -13,14 +13,16 @@ app.use(bodyParser.urlencoded({ extended: true }));
 require("dotenv").config();
 app.use(cookieParser());
 
-
 const jwtSecret = process.env.JWT_SECRET;
+
+app.get("/", (req, res) => {
+  res.redirect("/dashboard");
+});
 
 // ==================== LOGIN ROUTES ====================
 // LOGIN
 app.get("/login", (req, res) => {
   try {
-
     res.render("auth/login", {
       pesan: null,
     });
@@ -38,36 +40,33 @@ app.post("/login", (req, res) => {
         pesan: "Jangan Biarkan kolom inputan kosong!",
       });
     }
-    DB.query("SELECT * FROM users WHERE role = 'admin' AND email = ?", [email], (err,result) => {
+    DB.query("SELECT * FROM users WHERE role = 'admin' AND email = ?", [email], (err, result) => {
       if (err) {
         console.error(err);
         return res.status(500).json({ message: "DB error" });
-    }
-      if (result.length > 0) {  
-      const cocok = bcrypt.compareSync(password, result[0].password);
+      }
+      if (result.length > 0) {
+        const cocok = bcrypt.compareSync(password, result[0].password);
         if (!cocok) {
           return res.render("auth/login", {
             pesan: "Password salah!",
           });
         }
-  
-        const token = jwt.sign(
-          {role: "admin", email: email },
-          process.env.JWT_SECRET
-        );
+
+        const token = jwt.sign({ role: "admin", email: email }, process.env.JWT_SECRET);
         res.cookie("authToken", token, {
           httpOnly: true,
           secure: false,
           maxAge: 24 * 60 * 60 * 1000,
         });
-        return res.redirect("/categories");
+        return res.redirect("/dashboard");
       }
       DB.query("SELECT * FROM users", (err, result) => {
         if (err) {
           console.error("Error login:", err);
           return res.status(500).send("Terjadi kesalahan pada database.");
         }
-  
+
         if (email === result[0].email && password === result[0].password) {
           res.send("halllo");
         } else {
@@ -76,7 +75,7 @@ app.post("/login", (req, res) => {
           });
         }
       });
-    })
+    });
   } catch (err) {
     console.error("Error:", err);
     res.status(500).send("Terjadi kesalahan pada server.");
@@ -93,35 +92,66 @@ function authMiddleware(req, res, next) {
     req.user = result;
     next();
   });
-  
 }
-
 
 // ==================== MIDLEWARE AUTH ADMIN ====================
 function adminAuth(req, res, next) {
   if (req.user.role != "admin") {
-    return res.status(403).send("Admin only")
+    return res.status(403).send("Admin only");
   }
-  next()
+  next();
 }
 // ==================== LOGOUT ROUTES ====================
-app.post("/logout", (req,res) =>{
+app.post("/logout", (req, res) => {
   res.clearCookie("authToken", {
     httpOnly: true,
     secure: false,
     sameSite: "strict",
   });
-  res.redirect("/login")
-})
+  res.redirect("/login");
+});
 
+// ==================== DASHBOARD ROUTE ====================
+app.get("/dashboard", authMiddleware, adminAuth, (req, res) => {
+  try {
+    const totalBooksQuery = "SELECT COUNT(*) AS total FROM books";
+    const totalUsersQuery = "SELECT COUNT(*) AS total FROM users WHERE role = 'user'";
+    const totalCategoriesQuery = "SELECT COUNT(*) AS total FROM categories";
+    const activeBookingsQuery = "SELECT COUNT(*) AS total FROM bookings WHERE actual_return_date IS NULL";
 
+    DB.query(totalBooksQuery, (err, booksResult) => {
+      if (err) throw err;
+      DB.query(totalUsersQuery, (err, usersResult) => {
+        if (err) throw err;
+        DB.query(totalCategoriesQuery, (err, categoriesResult) => {
+          if (err) throw err;
+          DB.query(activeBookingsQuery, (err, bookingsResult) => {
+            if (err) throw err;
 
+            res.render("layout", {
+              content: "dashboard",
+              stats: {
+                books: booksResult[0].total,
+                users: usersResult[0].total,
+                categories: categoriesResult[0].total,
+                bookings: bookingsResult[0].total,
+              },
+            });
+          });
+        });
+      });
+    });
+  } catch (err) {
+    console.error("Error Dashboard:", err);
+    res.status(500).send("Terjadi kesalahan pada server.");
+  }
+});
 
 // ==================== CATEGORIES ROUTES ====================
 // CREATE PAGE
-app.get("/categories/create",authMiddleware, adminAuth, (req, res) => {
+app.get("/categories/create", authMiddleware, adminAuth, (req, res) => {
   try {
-    res.render("categories/createCategories", { pesan: null });
+    res.render("layout", { content: "categories/createCategories", pesan: null });
   } catch (err) {
     console.error("Error:", err);
     res.status(500).send("Terjadi kesalahan pada server.");
@@ -134,7 +164,8 @@ app.post("/categories/create", (req, res) => {
     const newKategori = req.body.newKategori.trim();
 
     if (!newKategori) {
-      return res.render("categories/createCategories", {
+      return res.render("layout", {
+        content: "categories/createCategories",
         pesan: "Jangan biarkan kolom inputan kosong!",
       });
     }
@@ -146,7 +177,8 @@ app.post("/categories/create", (req, res) => {
       }
 
       if (result.length > 0) {
-        return res.render("categories/createCategories", {
+        return res.render("layout", {
+          content: "categories/createCategories",
           pesan: "Kategori sudah terdaftar. Silakan pilih yang lain.",
         });
       }
@@ -182,7 +214,8 @@ app.get("/categories/update", authMiddleware, adminAuth, (req, res) => {
 
       if (result.length === 0) return res.status(404).send("Kategori tidak ditemukan.");
 
-      res.render("categories/updateCategories", {
+      res.render("layout", {
+        content: "categories/updateCategories",
         id: result[0].id,
         name: result[0].name,
         pesan: null,
@@ -201,7 +234,8 @@ app.post("/categories/update", authMiddleware, adminAuth, (req, res) => {
     const name = req.body.name.trim();
 
     if (!name) {
-      return res.render("categories/updateCategories", {
+      return res.render("layout", {
+        content: "categories/updateCategories",
         pesan: "Inputan tidak boleh kosong!!",
         id,
         name,
@@ -215,7 +249,8 @@ app.post("/categories/update", authMiddleware, adminAuth, (req, res) => {
       }
 
       if (result[0]) {
-        return res.render("categories/updateCategories", {
+        return res.render("layout", {
+          content: "categories/updateCategories",
           pesan: "Inputan tidak boleh sama!!",
           id,
           name,
@@ -277,7 +312,8 @@ app.get("/categories", authMiddleware, adminAuth, (req, res) => {
               return res.status(500).send("Terjadi kesalahan pada server (join).");
             }
 
-            res.render("categories/categories", {
+            res.render("layout", {
+              content: "categories/categories",
               keywordResult,
               nameSearch: keyword,
               page,
@@ -301,12 +337,24 @@ app.get("/categories/delete/:id", authMiddleware, adminAuth, (req, res) => {
 
     if (!id) return res.status(400).send("ID tidak valid.");
 
-    DB.query("DELETE FROM categories WHERE id = ?", [id], (err) => {
+    // Cek apakah ada buku dalam kategori ini
+    DB.query("SELECT * FROM books WHERE category_id = ?", [id], (err, result) => {
       if (err) {
-        console.error("Error delete category:", err);
-        return res.status(500).send("Gagal menghapus data.");
+        console.error("Error check relation:", err);
+        return res.status(500).send("Terjadi kesalahan pada database.");
       }
-      res.redirect("/categories");
+
+      if (result.length > 0) {
+        return res.status(400).send("Gagal menghapus: Kategori ini tidak bisa dihapus karena masih berisi buku.");
+      }
+
+      DB.query("DELETE FROM categories WHERE id = ?", [id], (err) => {
+        if (err) {
+          console.error("Error delete category:", err);
+          return res.status(500).send("Gagal menghapus data kategori.");
+        }
+        res.redirect("/categories");
+      });
     });
   } catch (err) {
     console.error("Error:", err);
@@ -330,7 +378,7 @@ app.get("/users", authMiddleware, adminAuth, (req, res) => {
       queryCount += ` AND is_active=${status === "active" ? 1 : 0}`;
     }
     query += ` ORDER BY id ASC LIMIT ${limit} OFFSET ${offset}`;
-    console.log("🚀 ~ queryCount:", queryCount)
+    console.log("🚀 ~ queryCount:", queryCount);
 
     DB.query(query, (err, result) => {
       if (err) {
@@ -343,7 +391,7 @@ app.get("/users", authMiddleware, adminAuth, (req, res) => {
           return res.status(500).send("Terjadi kesalahan pada server.");
         }
         const totalData = countResult[0].total;
-      
+
         const totalPage = Math.ceil(totalData / limit);
         res.render("layout", {
           content: "user/index",
@@ -365,7 +413,8 @@ app.get("/users", authMiddleware, adminAuth, (req, res) => {
 // CREATE PAGE
 app.get("/users/create", authMiddleware, adminAuth, (req, res) => {
   try {
-    res.render("user/createUsers", {
+    res.render("layout", {
+      content: "user/createUsers",
       pesan: null,
     });
   } catch (err) {
@@ -384,7 +433,8 @@ app.post("/users/create", authMiddleware, adminAuth, (req, res) => {
     const hashPassword = bcrypt.hashSync(newPassword);
 
     if (!newName || !newEmail || !newPassword) {
-      return res.render("user/createUsers", {
+      return res.render("layout", {
+        content: "user/createUsers",
         pesan: "Jangan biarkan kolom inputan kosong!!",
       });
     } else {
@@ -395,7 +445,8 @@ app.post("/users/create", authMiddleware, adminAuth, (req, res) => {
         }
 
         if (result.length > 0) {
-          return res.render("user/createUsers", {
+          return res.render("layout", {
+            content: "user/createUsers",
             pesan: "Nama atau Email sudah terdaftar!",
           });
         }
@@ -428,7 +479,8 @@ app.get("/users/update", authMiddleware, adminAuth, (req, res) => {
 
       if (result.length === 0) return res.status(404).send("User tidak ditemukan.");
 
-      res.render("user/updateUsers", {
+      res.render("layout", {
+        content: "user/updateUsers",
         id: result[0].id,
         name: result[0].name,
         email: result[0].email,
@@ -456,7 +508,8 @@ app.post("/users/update", authMiddleware, adminAuth, (req, res) => {
           return res.status(500).send("Terjadi kesalahan pada server.");
         }
 
-        return res.render("user/updateUsers", {
+        return res.render("layout", {
+          content: "user/updateUsers",
           pesan: "Jangan biarkan kolom inputan kosong",
           id: id,
           name: updateName || userData[0].name,
@@ -496,7 +549,8 @@ app.post("/users/update", authMiddleware, adminAuth, (req, res) => {
             pesanError = "Email sudah terdaftar. Silakan pilih yang lain.";
           }
 
-          return res.render("user/updateUsers", {
+          return res.render("layout", {
+            content: "user/updateUsers",
             pesan: pesanError,
             id: id,
             name: updateName,
@@ -604,7 +658,7 @@ app.get("/books", authMiddleware, adminAuth, (req, res) => {
 
           searchResult.forEach((r) => {
             if (r.booking_id == null) {
-              r.statusBook = 1;   
+              r.statusBook = 1;
             } else {
               r.statusBook = 2;
             }
@@ -636,7 +690,7 @@ app.get("/books/create", authMiddleware, adminAuth, (req, res) => {
         console.error("Error get categories:", err);
         return res.status(500).send("Terjadi kesalahan pada pengambuilan categories");
       }
-      return res.render("books/createBook", { category: result, pesan: null });
+      return res.render("layout", { content: "books/createBook", category: result, pesan: null });
     });
   } catch (err) {
     console.error("Error:", err);
@@ -658,7 +712,7 @@ app.post("/books/create", authMiddleware, adminAuth, (req, res) => {
           console.error("Error get categories:", err);
           return res.status(500).send("Terjadi kesalahan pada pengambuilan categories");
         }
-        res.render("books/createBook", { category: result, pesan: "Jangan biarkan kolom inputan kosong" });
+        res.render("layout", { content: "books/createBook", category: result, pesan: "Jangan biarkan kolom inputan kosong" });
       });
       return;
     }
@@ -687,7 +741,8 @@ app.post("/books/create", authMiddleware, adminAuth, (req, res) => {
             return res.status(500).send("Error mengambil kategori");
           }
 
-          res.render("books/createBook", {
+          res.render("layout", {
+            content: "books/createBook",
             pesan: pesanError,
             category: categories,
           });
@@ -744,7 +799,8 @@ app.get("/books/update", authMiddleware, adminAuth, (req, res) => {
             return res.status(500).send("Terjadi kesalahan saat mengambil kategori");
           }
 
-          res.render("books/updateBook", {
+          res.render("layout", {
+            content: "books/updateBook",
             id: bookResult[0].id,
             title: bookResult[0].title,
             isbn: bookResult[0].isbn,
@@ -775,10 +831,10 @@ app.post("/books/update", authMiddleware, adminAuth, (req, res) => {
       DB.query(
         `SELECT 
 		books.*,
-		categories.name AS category_name
-	FROM books 
-	INNER JOIN categories ON books.category_id = categories.id 
-	WHERE books.id = ?`,
+		  categories.name AS category_name
+	  FROM books 
+	    INNER JOIN categories ON books.category_id = categories.id 
+	  WHERE books.id = ?`,
         [id],
         (err, bookResult) => {
           if (err) {
@@ -859,12 +915,30 @@ app.get("/books/delete/:id", authMiddleware, adminAuth, (req, res) => {
     const id = parseInt(req.params.id);
     if (!id) return res.status(400).send("ID tidak valid.");
 
-    DB.query("DELETE FROM books WHERE id = ? ", [id], (err) => {
+    // Cek apakah buku sedang dipinjam
+    DB.query(`
+      SELECT * FROM detail_bookings 
+      JOIN bookings ON detail_bookings.booking_id = bookings.id 
+      WHERE detail_bookings.book_id = ? AND bookings.actual_return_date IS NULL
+    `, [id], (err, result) => {
       if (err) {
-        console.error("Error delete book:", err);
-        return res.status(500).send("Gagal menghapus data.");
+        console.error("Error check relation:", err);
+        return res.status(500).send("Terjadi kesalahan pada database.");
       }
-      res.redirect("/books");
+
+      if (result.length > 0) {
+        // Jika ada relasi yang masih aktif (belum dikembalikan)
+        return res.status(400).send("Gagal menghapus: Buku ini tidak bisa dihapus karena sedang dipinjam.");
+      }
+
+      // Jika tidak ada relasi, lanjutkan penghapusan
+      DB.query("DELETE FROM books WHERE id = ? ", [id], (err) => {
+        if (err) {
+          console.error("Error delete book:", err);
+          return res.status(500).send("Gagal menghapus data buku.");
+        }
+        res.redirect("/books");
+      });
     });
   } catch (err) {
     console.error("Error:", err);
@@ -898,7 +972,6 @@ app.get("/bookings", authMiddleware, adminAuth, (req, res) => {
       JOIN detail_bookings ON detail_bookings.booking_id = bookings.id
       JOIN books ON books.id = detail_bookings.book_id
       WHERE bookings.actual_return_date IS NULL AND (users.name LIKE '%${keyword}%' OR books.title LIKE '%${keyword}%') GROUP BY bookings.id`;
-      console.log("🚀 ~ query:", query)
 
       queryCount = `
       SELECT 
@@ -947,8 +1020,8 @@ app.get("/bookings", authMiddleware, adminAuth, (req, res) => {
         `;
       }
     }
-    
-    query += ` LIMIT ${limit} OFFSET ${offset}`
+
+    query += ` LIMIT ${limit} OFFSET ${offset}`;
 
     DB.query(queryCount, (err, totalBookings) => {
       if (err) {
@@ -974,11 +1047,10 @@ app.get("/bookings", authMiddleware, adminAuth, (req, res) => {
               console.error("Error get bookings:", err);
               return res.status(500).send("Gagal ambil data");
             }
-            
-            const totalData = totalBookings[0].totalBookings;
-            const totalPage = Math.ceil(totalData/limit)
 
-            
+            const totalData = totalBookings[0].totalBookings;
+            const totalPage = Math.ceil(totalData / limit);
+
             resultSearch.forEach((r) => {
               r.startDate = dayjs(r.start_date).format("D MMMM YYYY");
               r.endDate = dayjs(r.end_date).format("D MMMM YYYY");
@@ -989,7 +1061,7 @@ app.get("/bookings", authMiddleware, adminAuth, (req, res) => {
 
               if (!actual) {
                 r.status = "Dipinjam";
-              } else if (actual.isAfter(end))  {
+              } else if (actual.isAfter(end)) {
                 r.status = "Terlambat";
               } else {
                 r.status = "Dikembalikan";
@@ -1004,12 +1076,12 @@ app.get("/bookings", authMiddleware, adminAuth, (req, res) => {
               keyword,
               content: "bookings/index",
               totalPage: totalPage || 0,
-              limit
+              limit,
             });
           }
         );
       });
-    })
+    });
   } catch (err) {
     console.error("Error:", err);
     res.status(500).send("Terjadi kesalahan pada server.");
@@ -1095,7 +1167,7 @@ app.post("/bookings/create", authMiddleware, adminAuth, (req, res) => {
       const booking_id = result.insertId;
 
       const books_id = Array.isArray(book_ids) ? book_ids : [book_ids];
-      let selesai = 0;  
+      let selesai = 0;
 
       books_id.forEach((book) => {
         DB.query("INSERT INTO detail_bookings (book_id, booking_id) VALUES (?,?)", [book, booking_id], (err) => {
@@ -1188,7 +1260,7 @@ app.get("/bookings/returnBook", authMiddleware, adminAuth, (req, res) => {
           actualDate,
           penalty_fee: 0,
           actual,
-          end
+          end,
         });
       }
     );
@@ -1203,7 +1275,8 @@ app.post("/bookings/returnBook", authMiddleware, adminAuth, (req, res) => {
   try {
     const id = req.body.id;
     const format = req.body.fee;
-    const fee = format.replace(/[.,-]/g, "");
+    const safeFormat = format ? String(format) : "0";
+    const fee = safeFormat.replace(/[.,-]/g, "");
 
     DB.query("UPDATE bookings SET actual_return_date = NOW() WHERE  id = ?", [id], (err) => {
       if (err) {
@@ -1329,6 +1402,129 @@ app.get("/bookings/user/:id", authMiddleware, adminAuth, (req, res) => {
   );
 });
 
+app.get("/bookings/book/:id", (req, res) => {
+  const id = req.params.id;
+
+  DB.query(
+    `
+    SELECT
+      books.*,
+      categories.name
+      FROM books
+    JOIN categories ON books.category_id = categories.id
+    WHERE books.id = ?
+    `,
+    [id],
+    (err, result) => {
+      if (err) {
+        console.error(err);
+        return;
+      }
+      DB.query(
+        `
+        SELECT 
+          users.name,
+          users.email,
+          bookings.start_date,
+          bookings.end_date,
+          bookings.actual_return_date,
+          bookings.id AS bookings_id
+        FROM users
+        JOIN bookings ON users.id = bookings.user_id
+        JOIN detail_bookings ON bookings.id = detail_bookings.booking_id
+        WHERE detail_bookings.book_id = ?
+        AND bookings.actual_return_date IS NULL
+        `,
+        [id],
+        (err, results) => {
+          if (err) {
+            console.error(err);
+            return;
+          }
+          DB.query(
+            `
+            SELECT 
+              users.name, 
+              users.email, 
+              bookings.start_date, 
+              bookings.end_date, 
+              detail_bookings.book_id 
+            FROM users 
+            JOIN bookings ON bookings.user_id = users.id 
+            JOIN detail_bookings ON detail_bookings.booking_id = bookings.id 
+            WHERE bookings.actual_return_date IS NOT NULL 
+              AND detail_bookings.book_id = ?;
+            `,
+            [id],
+            (err, borrowerHistory) => {
+              if (err) {
+                console.error(err);
+                return;
+              }
+
+              const yangPinjam = results.length > 0 ? results : null;
+              const riwayatPeminjaman = borrowerHistory.length > 0 ? borrowerHistory : null;
+              const statusBook = yangPinjam ? 1 : 0;
+
+              let startDateForamat = "-";
+              let endDateFormat = "-"; 
+              let timeLeft = 0;
+              let actual = dayjs();
+              let dayEnd = null;
+              let colorWarning = "orange";
+              let dataPeminjam
+
+              // 3. Hanya isi jika ada data peminjaman aktif
+              if (yangPinjam) {
+                const ds = dayjs(results[0].start_date);
+                const de = dayjs(results[0].end_date);
+
+                dayEnd = de;
+                startDateForamat = ds.format("D MMMM YYYY");
+                endDateFormat = de.format("D MMMM YYYY");
+
+                const diff = de.diff(actual, "day");
+
+                if (diff < 0) {
+                  timeLeft = Math.abs(diff);
+                  colorWarning = "red";
+                } else {
+                  timeLeft = diff;
+                  colorWarning = timeLeft < 4 ? "red" : "orange";
+                }
+              }
+
+              if (riwayatPeminjaman) {
+                borrowerHistory.forEach((item) => {
+                  item.startDate = dayjs(item.start_date).format("D MMMM YYYY");
+                  item.endDate = dayjs(item.end_date).format("D MMMM YYYY");
+                  
+                });
+              }
+
+                res.render("layout", {
+                  content: "bookings/detailBook",
+                  book: result[0],
+                  yangPinjam,
+                  startDateForamat,
+                  endDateFormat,
+                  statusBook,
+                  timeLeft,
+                  actual,
+                  dayEnd,
+                  colorWarning,
+                  dataPeminjam,
+                  riwayatPeminjaman,
+                  borrowerHistory,
+                });
+            }
+          );
+        }
+      );
+    }
+  );
+});
+
 // ==================== SETTINGS ROUTES ====================
 app.get("/settings", authMiddleware, adminAuth, (req, res) => {
   try {
@@ -1381,5 +1577,3 @@ app.post("/settings/updatePenalty", authMiddleware, adminAuth, (req, res) => {
 app.listen(port, () => {
   console.log(`Server berjalan di http://localhost:${port}`);
 });
-
-

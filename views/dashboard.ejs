@@ -1,0 +1,131 @@
+<main class="flex-1 p-4 md:p-8 h-screen bg-gray-50 overflow-y-auto">
+
+  <!-- Header -->
+  <header class="flex justify-between items-center mb-10">
+    <div>
+      <h1 class="text-3xl font-extrabold text-gray-800">Ringkasan Sistem</h1>
+      <p class="text-gray-500 mt-1">Selamat datang kembali di panel administrasi perpustakaan.</p>
+    </div>
+    <div class="flex items-center gap-4">
+      <div class="text-right">
+        <p class="text-sm font-semibold text-gray-800">Administrator</p>
+        <p class="text-xs text-blue-600">Terdaftar</p>
+      </div>
+      <div class="w-12 h-12 bg-blue-100 rounded-full border-2 border-white shadow-sm flex items-center justify-center">
+        <i class="fa-solid fa-user-tie text-blue-600"></i>
+      </div>
+    </div>
+  </header>
+
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+
+    <!-- Card 1: Books -->
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300">
+      <div class="flex items-center justify-between mb-4">
+        <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+          <i class="fa-solid fa-book text-xl"></i>
+        </div>
+        <span class="text-xs font-bold px-2 py-1 bg-blue-100 text-blue-700 rounded-full">+ Total</span>
+      </div>
+      <div>
+        <h3 class="text-gray-500 text-sm font-medium">Total Koleksi Buku</h3>
+        <p class="text-2xl font-bold text-gray-800"><%= stats.books %></p>
+      </div>
+    </div>
+
+    <!-- Card 2: Users -->
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300">
+      <div class="flex items-center justify-between mb-4">
+        <div class="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600">
+          <i class="fa-solid fa-users text-xl"></i>
+        </div>
+        <span class="text-xs font-bold px-2 py-1 bg-purple-100 text-purple-700 rounded-full">Anggota Aktif</span>
+      </div>
+      <div>
+        <h3 class="text-gray-500 text-sm font-medium">Total Pengguna Aktif</h3>
+        <p class="text-2xl font-bold text-gray-800"><%= stats.users %></p>
+      </div>
+    </div>
+
+    <!-- Card 3: Categories -->
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300">
+      <div class="flex items-center justify-between mb-4">
+        <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
+          <i class="fa-solid fa-layer-group text-xl"></i>
+        </div>
+        <span class="text-xs font-bold px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full">Klasifikasi</span>
+      </div>
+      <div>
+        <h3 class="text-gray-500 text-sm font-medium">Banyaknya Kategori</h3>
+        <p class="text-2xl font-bold text-gray-800"><%= stats.categories %></p>
+      </div>
+    </div>
+
+    <!-- Card 4: Active Bookings -->
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300">
+      <div class="flex items-center justify-between mb-4">
+        <div class="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center text-orange-600">
+          <i class="fa-solid fa-handshake-angle text-xl"></i>
+        </div>
+        <span class="text-xs font-bold px-2 py-1 bg-orange-100 text-orange-700 rounded-full">Proses Pinjam</span>
+      </div>
+      <div>
+        <h3 class="text-gray-500 text-sm font-medium">Peminjaman Berjalan</h3>
+        <p class="text-2xl font-bold text-gray-800"><%= stats.bookings %></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Info & Recent Activity -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Welcome Info -->
+    <div class="lg:col-span-2 bg-gradient-to-br from-blue-600 to-blue-800 rounded-3xl p-8 text-white relative overflow-hidden group shadow-xl">
+      <div class="relative z-10">
+        <h2 class="text-3xl font-bold mb-4 leading-tight">Kelola perpustakaan dengan lebih efisien & modern.</h2>
+        <p class="text-blue-100 mb-8 max-w-lg">Lihat laporan lengkap, kelola anggota, dan awasi distribusi buku hanya dalam satu tempat. Sistem kami membantu Anda menghemat waktu.</p>
+        <div class="flex gap-4">
+          <a href="/bookings/create" class="px-6 py-3 bg-white text-blue-700 font-bold rounded-xl hover:bg-blue-50 transition-colors shadow-lg">Tambah Peminjaman</a>
+          <a href="/books" class="px-6 py-3 bg-blue-500 bg-opacity-30 border border-blue-400 text-white font-bold rounded-xl hover:bg-opacity-40 transition-colors">Lihat Koleksi</a>
+        </div>
+      </div>
+      <!-- Decorative circles -->
+      <div class="absolute -right-16 -top-16 w-64 h-64 bg-white opacity-10 rounded-full group-hover:scale-110 transition-transform duration-700"></div>
+      <div class="absolute right-24 bottom-12 w-24 h-24 bg-white opacity-5 rounded-full group-hover:scale-125 transition-transform duration-700"></div>
+    </div>
+
+    <!-- Quick Status -->
+    <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 h-full">
+      <h3 class="text-xl font-bold text-gray-800 mb-6">Status Keamanan</h3>
+      <ul class="space-y-6">
+        <li class="flex items-center gap-4">
+          <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+            <i class="fa-solid fa-check"></i>
+          </div>
+          <div>
+            <p class="text-sm font-bold text-gray-800">Database Connected</p>
+            <p class="text-xs text-gray-500">Stabilitas sistem: 100%</p>
+          </div>
+        </li>
+        <li class="flex items-center gap-4">
+          <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <div>
+            <p class="text-sm font-bold text-gray-800">SSL Active</p>
+            <p class="text-xs text-gray-500">Komunikasi data terenkripsi</p>
+          </div>
+        </li>
+        <li class="flex items-center gap-4">
+          <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+          </div>
+          <div>
+            <p class="text-sm font-bold text-gray-800">Last Backup</p>
+            <p class="text-xs text-gray-500">Otomatis dilakukan 2 jam lalu</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</main>
