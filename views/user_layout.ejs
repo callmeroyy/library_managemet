@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Perpustakaan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+                    colors: {
+                        primary: { 50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd', 400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .hero-bg { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 40%, #1d4ed8 70%, #2563eb 100%); }
+        .glass { background: rgba(255,255,255,0.08); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.15); }
+        .book-card:hover .book-overlay { opacity: 1; }
+        .book-overlay { transition: opacity 0.3s ease; opacity: 0; }
+        .nav-link { position: relative; }
+        .nav-link::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: #60a5fa; transition: width 0.3s ease; }
+        .nav-link:hover::after, .nav-link.active::after { width: 100%; }
+        .floating { animation: float 6s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-16px); } }
+        .section-divider { background: linear-gradient(90deg, transparent, #e2e8f0, transparent); }
+        .scroll-cards::-webkit-scrollbar { height: 6px; } 
+        .scroll-cards::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+        .scroll-cards::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; }
+        .mobile-menu { display: none; }
+        .mobile-menu.open { display: block; }
+    </style>
+</head>
+<body class="bg-white text-gray-900">
+
+    <!-- ===================== NAVBAR ===================== -->
+    <% 
+    const isTransparentNavbar = (locals.path === '/' || locals.path === '/beranda' || locals.path === '/katalog' || locals.path === '/user/pinjaman' || locals.path === '/user/riwayat');
+    %>
+    <header id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 <%= isTransparentNavbar ? 'bg-transparent' : 'bg-gray-900 shadow-xl border-b border-white/5' %>">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-18 py-4">
+                <!-- Logo -->
+                <a href="/" class="flex items-center gap-3 group">
+                    <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:bg-blue-500 transition">
+                        <i class="fa-solid fa-book-open-reader text-white text-lg"></i>
+                    </div>
+                    <span class="text-xl font-bold text-white tracking-tight">E-Perpus<span class="text-blue-300">.</span></span>
+                </a>
+
+                <!-- Nav Links (Desktop) -->
+                <nav class="hidden md:flex items-center gap-8">
+                    <a href="/" class="nav-link text-sm font-semibold text-white/80 hover:text-white transition <%= locals.path === '/' || locals.path === '/beranda' ? 'active text-white' : '' %>">Beranda</a>
+                    <a href="/katalog" class="nav-link text-sm font-semibold text-white/80 hover:text-white transition <%= locals.path && locals.path.startsWith('/katalog') ? 'active text-white' : '' %>">Katalog</a>
+                    <a href="/#tentang" class="nav-link text-sm font-semibold text-white/80 hover:text-white transition">Tentang Kami</a>
+                    <a href="/#lokasi" class="nav-link text-sm font-semibold text-white/80 hover:text-white transition">Lokasi</a>
+                </nav>
+
+                <!-- Right Side -->
+                <div class="hidden md:flex items-center gap-3">
+                    <% if (locals.user && locals.user.role === 'user') { %>
+                        <a href="/user/pinjaman" class="text-sm font-semibold text-white/80 hover:text-white transition px-3 py-2 rounded-lg hover:bg-white/10">
+                            <i class="fa-solid fa-book-open-reader mr-2"></i>Pinjaman
+                        </a>
+                        <a href="/user/riwayat" class="text-sm font-semibold text-white/80 hover:text-white transition px-3 py-2 rounded-lg hover:bg-white/10">
+                            <i class="fa-solid fa-clock-rotate-left mr-2"></i>Riwayat
+                        </a>
+                        <form action="/logout" method="POST" class="inline">
+                            <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition shadow-lg">
+                                <i class="fa-solid fa-right-from-bracket mr-2"></i>Logout
+                            </button>
+                        </form>
+                    <% } else { %>
+                        <a href="/login" class="bg-white text-blue-700 hover:bg-blue-50 px-5 py-2.5 rounded-xl text-sm font-bold transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                            <i class="fa-solid fa-right-to-bracket mr-2"></i>Login Member
+                        </a>
+                    <% } %>
+                </div>
+
+                <!-- Mobile Hamburger -->
+                <button id="mobileToggle" class="md:hidden text-white p-2 rounded-lg hover:bg-white/10 transition">
+                    <i class="fa-solid fa-bars text-xl" id="hamburgerIcon"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobileMenu" class="mobile-menu md:hidden bg-gray-900/95 backdrop-blur-sm border-t border-white/10 px-4 py-4 space-y-2">
+            <a href="/" class="block text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-white/10 transition">Beranda</a>
+            <a href="/katalog" class="block text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-white/10 transition">Katalog</a>
+            <a href="/#tentang" class="block text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-white/10 transition">Tentang Kami</a>
+            <a href="/#lokasi" class="block text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-white/10 transition">Lokasi</a>
+            <div class="pt-2 border-t border-white/10">
+                <% if (locals.user && locals.user.role === 'user') { %>
+                    <a href="/user/pinjaman" class="block text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-white/10 transition">Pinjaman Saya</a>
+                    <a href="/user/riwayat" class="block text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-white/10 transition">Riwayat</a>
+                    <form action="/logout" method="POST">
+                        <button type="submit" class="w-full text-left text-red-400 font-semibold py-2.5 px-4 rounded-lg hover:bg-red-500/10 transition">
+                            <i class="fa-solid fa-right-from-bracket mr-2"></i>Logout
+                        </button>
+                    </form>
+                <% } else { %>
+                    <a href="/login" class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition mt-2">
+                        <i class="fa-solid fa-right-to-bracket mr-2"></i>Login Member
+                    </a>
+                <% } %>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <%- include(content) %>
+    </main>
+
+    <!-- ===================== FOOTER ===================== -->
+    <footer class="bg-gray-950 text-white pt-16 pb-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-10 pb-10 border-b border-white/10">
+                <!-- Brand -->
+                <div class="md:col-span-1">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+                            <i class="fa-solid fa-book-open-reader text-white"></i>
+                        </div>
+                        <span class="text-xl font-bold">E-Perpus<span class="text-blue-400">.</span></span>
+                    </div>
+                    <p class="text-gray-400 text-sm leading-relaxed">Perpustakaan digital modern yang memberikan kemudahan akses informasi untuk semua anggota.</p>
+                    <div class="flex gap-3 mt-5">
+                        <a href="#" class="w-9 h-9 bg-white/5 hover:bg-blue-600 rounded-lg flex items-center justify-center transition text-gray-400 hover:text-white">
+                            <i class="fa-brands fa-instagram text-sm"></i>
+                        </a>
+                        <a href="#" class="w-9 h-9 bg-white/5 hover:bg-blue-600 rounded-lg flex items-center justify-center transition text-gray-400 hover:text-white">
+                            <i class="fa-brands fa-facebook text-sm"></i>
+                        </a>
+                        <a href="#" class="w-9 h-9 bg-white/5 hover:bg-blue-600 rounded-lg flex items-center justify-center transition text-gray-400 hover:text-white">
+                            <i class="fa-brands fa-twitter text-sm"></i>
+                        </a>
+                    </div>
+                </div>
+                <!-- Quick Links -->
+                <div>
+                    <h4 class="text-sm font-bold text-white uppercase tracking-wider mb-4">Navigasi</h4>
+                    <ul class="space-y-2.5">
+                        <li><a href="/" class="text-gray-400 text-sm hover:text-white transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs text-blue-500"></i>Beranda</a></li>
+                        <li><a href="/katalog" class="text-gray-400 text-sm hover:text-white transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs text-blue-500"></i>Katalog Buku</a></li>
+                        <li><a href="/#tentang" class="text-gray-400 text-sm hover:text-white transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs text-blue-500"></i>Tentang Kami</a></li>
+                        <li><a href="/#lokasi" class="text-gray-400 text-sm hover:text-white transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs text-blue-500"></i>Lokasi</a></li>
+                    </ul>
+                </div>
+                <!-- Member -->
+                <div>
+                    <h4 class="text-sm font-bold text-white uppercase tracking-wider mb-4">Member</h4>
+                    <ul class="space-y-2.5">
+                        <li><a href="/login" class="text-gray-400 text-sm hover:text-white transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs text-blue-500"></i>Login Anggota</a></li>
+                        <li><a href="/user/pinjaman" class="text-gray-400 text-sm hover:text-white transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs text-blue-500"></i>Pinjaman Saya</a></li>
+                        <li><a href="/user/riwayat" class="text-gray-400 text-sm hover:text-white transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs text-blue-500"></i>Riwayat Buku</a></li>
+                    </ul>
+                </div>
+                <!-- Contact -->
+                <div>
+                    <h4 class="text-sm font-bold text-white uppercase tracking-wider mb-4">Kontak</h4>
+                    <ul class="space-y-3">
+                        <li class="flex items-start gap-3 text-gray-400 text-sm"><i class="fa-solid fa-location-dot text-blue-500 mt-0.5 flex-shrink-0"></i>Jl. Perpustakaan No. 1, Kota, Indonesia</li>
+                        <li class="flex items-center gap-3 text-gray-400 text-sm"><i class="fa-solid fa-phone text-blue-500 flex-shrink-0"></i>+62 812-3456-7890</li>
+                        <li class="flex items-center gap-3 text-gray-400 text-sm"><i class="fa-solid fa-envelope text-blue-500 flex-shrink-0"></i>info@eperpus.id</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+                <p class="text-gray-500 text-sm">&copy; 2026 E-Perpustakaan. Hak Cipta Dilindungi.</p>
+                <p class="text-gray-600 text-xs">Dibangun dengan ❤️ untuk kemudahan membaca</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Navbar scroll effect
+        const navbar = document.getElementById('navbar');
+        const isTransparentNavbar = <%= (locals.path === '/' || locals.path === '/beranda' || locals.path === '/katalog' || locals.path === '/user/pinjaman' || locals.path === '/user/riwayat') ? 'true' : 'false' %>;
+
+        if (isTransparentNavbar) {
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 60) {
+                    navbar.classList.add('bg-gray-900/95', 'backdrop-blur-md', 'shadow-xl', 'border-b', 'border-white/5');
+                    navbar.classList.remove('bg-transparent');
+                } else {
+                    navbar.classList.remove('bg-gray-900/95', 'backdrop-blur-md', 'shadow-xl', 'border-b', 'border-white/5');
+                    navbar.classList.add('bg-transparent');
+                }
+            });
+        }
+        // Mobile toggle
+        const mobileToggle = document.getElementById('mobileToggle');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const hamburgerIcon = document.getElementById('hamburgerIcon');
+        mobileToggle.addEventListener('click', () => {
+            mobileMenu.classList.toggle('open');
+            hamburgerIcon.classList.toggle('fa-bars');
+            hamburgerIcon.classList.toggle('fa-xmark');
+        });
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="/#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                const id = href.split('#')[1];
+                const el = document.getElementById(id);
+                if (el) {
+                    e.preventDefault();
+                    el.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

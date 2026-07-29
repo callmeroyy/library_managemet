@@ -13,10 +13,36 @@ app.use(bodyParser.urlencoded({ extended: true }));
 require("dotenv").config();
 app.use(cookieParser());
 
+// Expose req.path to all EJS views
+app.use((req, res, next) => {
+  res.locals.path = req.path;
+  next();
+});
+
 const jwtSecret = process.env.JWT_SECRET;
 
-app.get("/", (req, res) => {
-  res.redirect("/dashboard");
+app.get("/", optionalAuth, (req, res) => {
+  try {
+    DB.query(`
+      SELECT books.*, categories.name AS category_name
+      FROM books
+      LEFT JOIN categories ON books.category_id = categories.id
+      ORDER BY books.id DESC LIMIT 8
+    `, (err, featuredBooks) => {
+      if (err) throw err;
+      res.render("user_layout", {
+        content: "public/beranda",
+        featuredBooks
+      });
+    });
+  } catch (err) {
+    console.error("Error:", err);
+    res.status(500).send("Terjadi kesalahan pada server.");
+  }
+});
+
+app.get("/beranda", (req, res) => {
+  res.redirect("/");
 });
 
 // ==================== LOGIN ROUTES ====================
@@ -40,41 +66,41 @@ app.post("/login", (req, res) => {
         pesan: "Jangan Biarkan kolom inputan kosong!",
       });
     }
-    DB.query("SELECT * FROM users WHERE role = 'admin' AND email = ?", [email], (err, result) => {
+    DB.query("SELECT * FROM users WHERE email = ?", [email], (err, result) => {
       if (err) {
         console.error(err);
         return res.status(500).json({ message: "DB error" });
       }
       if (result.length > 0) {
-        const cocok = bcrypt.compareSync(password, result[0].password);
+        if (result[0].is_active !== 1) {
+          return res.render("auth/login", {
+            pesan: "Akun anda dinonaktifkan!",
+          });
+        }
+        const cocok = bcrypt.compareSync(password, result[0].password) || (password === result[0].password);
         if (!cocok) {
           return res.render("auth/login", {
             pesan: "Password salah!",
           });
         }
 
-        const token = jwt.sign({ role: "admin", email: email }, process.env.JWT_SECRET);
+        const token = jwt.sign({ id: result[0].id, role: result[0].role, email: result[0].email }, process.env.JWT_SECRET);
         res.cookie("authToken", token, {
           httpOnly: true,
           secure: false,
           maxAge: 24 * 60 * 60 * 1000,
         });
-        return res.redirect("/dashboard");
-      }
-      DB.query("SELECT * FROM users", (err, result) => {
-        if (err) {
-          console.error("Error login:", err);
-          return res.status(500).send("Terjadi kesalahan pada database.");
-        }
-
-        if (email === result[0].email && password === result[0].password) {
-          res.send("halllo");
+        
+        if (result[0].role === 'admin') {
+          return res.redirect("/dashboard");
         } else {
-          res.render("auth/login", {
-            pesan: "akun tidak erdaftar!",
-          });
+          return res.redirect("/katalog");
         }
-      });
+      } else {
+        return res.render("auth/login", {
+          pesan: "Akun tidak terdaftar!",
+        });
+      }
     });
   } catch (err) {
     console.error("Error:", err);
@@ -90,6 +116,7 @@ function authMiddleware(req, res, next) {
   jwt.verify(authToken, jwtSecret, (err, result) => {
     if (err) return res.redirect("/login");
     req.user = result;
+    res.locals.user = result;
     next();
   });
 }
@@ -100,6 +127,35 @@ function adminAuth(req, res, next) {
     return res.status(403).send("Admin only");
   }
   next();
+}
+
+// ==================== MIDLEWARE AUTH USER ====================
+function userAuth(req, res, next) {
+  if (req.user.role != "user") {
+    return res.status(403).send("Member only");
+  }
+  next();
+}
+
+// ==================== MIDLEWARE OPTIONAL AUTH ====================
+function optionalAuth(req, res, next) {
+  const authToken = req.cookies.authToken;
+  if (!authToken) {
+    req.user = null;
+    res.locals.user = null;
+    return next();
+  }
+
+  jwt.verify(authToken, jwtSecret, (err, result) => {
+    if (!err) {
+      req.user = result;
+      res.locals.user = result;
+    } else {
+      req.user = null;
+      res.locals.user = null;
+    }
+    next();
+  });
 }
 // ==================== LOGOUT ROUTES ====================
 app.post("/logout", (req, res) => {
@@ -366,7 +422,8 @@ app.get("/categories/delete/:id", authMiddleware, adminAuth, (req, res) => {
 // LIST
 app.get("/users", authMiddleware, adminAuth, (req, res) => {
   try {
-    const { search = "", status = "all", page = 1 } = req.query;
+    const { search = "", status = "all" } = req.query;
+    const page = parseInt(req.query.page) || 1;
     const limit = 5;
     const offset = (page - 1) * limit;
 
@@ -609,7 +666,8 @@ app.get("/users/status", authMiddleware, adminAuth, (req, res) => {
 // LIST
 app.get("/books", authMiddleware, adminAuth, (req, res) => {
   try {
-    const { search = "", categoryId, page = 1 } = req.query;
+    const { search = "", categoryId } = req.query;
+    const page = parseInt(req.query.page) || 1;
     const limit = 10;
     const offset = (page - 1) * limit;
 
@@ -990,7 +1048,8 @@ app.get("/bookings", authMiddleware, adminAuth, (req, res) => {
         users.id
         FROM users
         JOIN bookings ON users.id = bookings.user_id
-        WHERE (users.name LIKE '%${keyword}%' OR users.email LIKE '%${keyword}%') 
+        WHERE (users.name LIKE '%${keyword}%' OR users.email LIKE '%${keyword}%')
+        ORDER BY users.id ASC
         `;
         queryCount = `
         SELECT 
@@ -1008,7 +1067,8 @@ app.get("/bookings", authMiddleware, adminAuth, (req, res) => {
         FROM books
         JOIN detail_bookings
         ON detail_bookings.book_id = books.id
-        WHERE (books.title LIKE '%${keyword}%' OR books.isbn LIKE '%${keyword}%') 
+        WHERE (books.title LIKE '%${keyword}%' OR books.isbn LIKE '%${keyword}%')
+        ORDER BY books.id ASC
         `;
         queryCount = `
         SELECT 
@@ -1411,7 +1471,7 @@ app.get("/bookings/book/:id", (req, res) => {
       books.*,
       categories.name
       FROM books
-    JOIN categories ON books.category_id = categories.id
+    LEFT JOIN categories ON books.category_id = categories.id
     WHERE books.id = ?
     `,
     [id],
@@ -1572,6 +1632,203 @@ app.post("/settings/updatePenalty", authMiddleware, adminAuth, (req, res) => {
     res.status(500).send("Terjadi kesalahan pada server.");
   }
 });
+
+// ==================== USER PORTAL ROUTES ====================
+
+app.get("/katalog", optionalAuth, (req, res) => {
+  try {
+    const search = req.query.search || "";
+    const page = parseInt(req.query.page) || 1;
+    const limit = 8;
+    const offset = (page - 1) * limit;
+
+    let query = `
+      SELECT books.*, categories.name AS category_name
+      FROM books
+      LEFT JOIN categories ON books.category_id = categories.id
+      WHERE title LIKE '%${search}%' OR isbn LIKE '%${search}%'
+      ORDER BY books.id DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+
+    let queryCount = `SELECT COUNT(*) AS total FROM books WHERE title LIKE '%${search}%' OR isbn LIKE '%${search}%'`;
+
+    DB.query(query, (err, books) => {
+      if (err) throw err;
+      DB.query(queryCount, (err, countResult) => {
+        if (err) throw err;
+        const totalPage = Math.ceil(countResult[0].total / limit);
+        res.render("user_layout", {
+          content: "public/katalog",
+          books,
+          search,
+          page,
+          totalPage
+        });
+      });
+    });
+  } catch (err) {
+    console.error("Error:", err);
+    res.status(500).send("Terjadi kesalahan pada server.");
+  }
+});
+
+app.get("/katalog/:id", optionalAuth, (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (!id) return res.status(400).send("ID tidak valid");
+
+    DB.query(
+      `SELECT books.*, categories.name AS category_name 
+       FROM books 
+       LEFT JOIN categories ON books.category_id = categories.id 
+       WHERE books.id = ?`,
+      [id],
+      (err, result) => {
+        if (err) throw err;
+        if (result.length === 0) return res.status(404).send("Buku tidak ditemukan");
+
+        // Record history if logged in as user
+        if (req.user && req.user.role === 'user') {
+          DB.query("INSERT INTO user_viewed_books (user_id, book_id) VALUES (?, ?)", [req.user.id, id], (err) => {
+            if (err) console.error("Gagal mencatat riwayat buku:", err);
+          });
+        }
+
+        res.render("user_layout", {
+          content: "public/detailBuku",
+          book: result[0]
+        });
+      }
+    );
+  } catch (err) {
+    console.error("Error:", err);
+    res.status(500).send("Terjadi kesalahan pada server.");
+  }
+});
+
+app.get("/user/pinjaman", authMiddleware, userAuth, (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    // Get active loans (sedang dipinjam)
+    const activeQuery = `
+      SELECT bookings.id, bookings.start_date, bookings.end_date,
+             GROUP_CONCAT(books.title SEPARATOR ', ') AS books
+      FROM bookings
+      JOIN detail_bookings ON detail_bookings.booking_id = bookings.id
+      JOIN books ON books.id = detail_bookings.book_id
+      WHERE bookings.user_id = ? AND bookings.actual_return_date IS NULL
+      GROUP BY bookings.id
+    `;
+
+    // Get stats
+    const statsQuery = `
+      SELECT 
+        (SELECT COUNT(DISTINCT detail_bookings.book_id) FROM bookings JOIN detail_bookings ON detail_bookings.booking_id = bookings.id WHERE bookings.user_id = ? AND bookings.actual_return_date IS NULL) as totalDipinjam,
+        (SELECT COUNT(DISTINCT detail_bookings.book_id) FROM bookings JOIN detail_bookings ON detail_bookings.booking_id = bookings.id WHERE bookings.user_id = ? AND bookings.actual_return_date IS NOT NULL) as totalDikembalikan
+    `;
+
+    DB.query(activeQuery, [userId], (err, activeLoans) => {
+      if (err) throw err;
+      
+      DB.query(statsQuery, [userId, userId], (err, statsResult) => {
+        if (err) throw err;
+        
+        DB.query("SELECT FORMAT(penalty_fee, 0, 'id_ID') AS penalty_fee FROM settings LIMIT 1", (err, settingResult) => {
+          if (err) throw err;
+          
+          let penaltyRate = 0;
+          if (settingResult.length > 0 && settingResult[0].penalty_fee) {
+            penaltyRate = Number(settingResult[0].penalty_fee.replace(/\\./g, ""));
+          }
+          
+          let totalDenda = 0;
+          let actual = dayjs();
+
+          activeLoans.forEach(loan => {
+            let start = dayjs(loan.start_date);
+            let end = dayjs(loan.end_date);
+            
+            loan.startDate = start.format("D MMMM YYYY");
+            loan.endDate = end.format("D MMMM YYYY");
+            
+            let diff = actual.diff(end, 'day');
+            
+            if (diff > 0) {
+              loan.isLate = true;
+              loan.daysLate = diff;
+              // estimate penalty based on total books in this booking
+              const numBooks = loan.books.split(',').length;
+              totalDenda += diff * numBooks * penaltyRate;
+            } else {
+              loan.isLate = false;
+              loan.daysLate = 0;
+            }
+          });
+
+          // Add past penalties already stored in actual_return_date != NULL bookings
+          DB.query("SELECT SUM(penalty_fee) as accumulatedPenalty FROM bookings WHERE user_id = ? AND actual_return_date IS NOT NULL", [userId], (err, pastPenaltyRes) => {
+            if (!err && pastPenaltyRes[0].accumulatedPenalty) {
+              totalDenda += Number(pastPenaltyRes[0].accumulatedPenalty);
+            }
+            
+            res.render("user_layout", {
+              content: "user_portal/pinjaman",
+              activeLoans,
+              totalDipinjam: statsResult[0].totalDipinjam || 0,
+              totalDikembalikan: statsResult[0].totalDikembalikan || 0,
+              totalDenda
+            });
+          });
+        });
+      });
+    });
+  } catch (err) {
+    console.error("Error:", err);
+    res.status(500).send("Terjadi kesalahan pada server.");
+  }
+});
+
+app.get("/user/riwayat", authMiddleware, userAuth, (req, res) => {
+  try {
+    const userId = req.user.id;
+    const query = `
+      SELECT books.*, categories.name AS category_name, MAX(user_viewed_books.viewed_at) as last_viewed
+      FROM user_viewed_books
+      JOIN books ON user_viewed_books.book_id = books.id
+      LEFT JOIN categories ON books.category_id = categories.id
+      WHERE user_viewed_books.user_id = ?
+      GROUP BY books.id
+      ORDER BY last_viewed DESC
+      LIMIT 50
+    `;
+
+    DB.query(query, [userId], (err, books) => {
+      if (err) throw err;
+      
+      const now = dayjs();
+      books.forEach(b => {
+        const viewed = dayjs(b.last_viewed);
+        const diffHours = now.diff(viewed, 'hour');
+        if (diffHours < 24) {
+          b.timeAgo = diffHours === 0 ? 'Baru saja' : diffHours + ' jam yang lalu';
+        } else {
+          b.timeAgo = now.diff(viewed, 'day') + ' hari yang lalu';
+        }
+      });
+
+      res.render("user_layout", {
+        content: "user_portal/riwayat",
+        books
+      });
+    });
+  } catch (err) {
+    console.error("Error:", err);
+    res.status(500).send("Terjadi kesalahan pada server.");
+  }
+});
+
 
 // ==================== SERVER START ====================
 app.listen(port, () => {

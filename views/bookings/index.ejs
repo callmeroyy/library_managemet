@@ -6,10 +6,12 @@
   </div>
   <div class="flex items-center gap-4">
     <!-- Logout -->
-    <a href="#" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-200 flex items-center gap-2">
-      <i class="fa-solid fa-right-from-bracket"></i>
-      <span class="hidden md:inline">Logout</span>
-    </a>
+      <form action="/logout" method="POST" style="display:inline;">
+        <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-200 flex items-center gap-2">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span class="hidden md:inline">Logout</span>
+        </button>
+      </form>
   </div>
 </nav>
 
@@ -218,8 +220,23 @@
     <!-- Pagination -->
     <div class="flex items-center justify-center mt-8 gap-2">
       <% if (totalPage > 0) { %>
+        <!-- Previous Button -->
+        <% if (page > 1) { %>
+          <a href="/bookings?page=<%= page - 1 %>&keyword=<%= keyword %>&status=<%= status %>" class="px-4 py-2 bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300 transition flex items-center justify-center"><i class="fa-solid fa-chevron-left"></i></a>
+        <% } else { %>
+          <button disabled class="px-4 py-2 bg-gray-100 text-gray-400 rounded-lg cursor-not-allowed flex items-center justify-center"><i class="fa-solid fa-chevron-left"></i></button>
+        <% } %>
+      
+        <!-- Page Numbers -->
         <% for(let i = 1; i <= totalPage; i++) { %>
-        <a href="/bookings?page=<%= i %>&keyword=<%= keyword %>&status=<%= status %>" class="px-4 py-2 rounded-lg transition duration-200 <%= i == page ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' %>"><%= i %></a>
+        <a href="/bookings?page=<%= i %>&keyword=<%= keyword %>&status=<%= status %>" class="px-4 py-2 rounded-lg transition flex items-center justify-center <%= i === page ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' %>"><%= i %></a>
+        <% } %>
+      
+        <!-- Next Button -->
+        <% if (page < totalPage) { %>
+          <a href="/bookings?page=<%= page + 1 %>&keyword=<%= keyword %>&status=<%= status %>" class="px-4 py-2 bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300 transition flex items-center justify-center"><i class="fa-solid fa-chevron-right"></i></a>
+        <% } else { %>
+          <button disabled class="px-4 py-2 bg-gray-100 text-gray-400 rounded-lg cursor-not-allowed flex items-center justify-center"><i class="fa-solid fa-chevron-right"></i></button>
         <% } %>
       <% } %>
     </div>

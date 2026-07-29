@@ -1,0 +1,92 @@
+<div class="min-h-screen bg-gray-50">
+    <!-- Page header -->
+    <div class="bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-800 text-white pt-28 pb-14 px-4 relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle at 80% 50%, #8b5cf6 0%, transparent 50%);"></div>
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                    <span class="text-purple-300 text-sm font-bold uppercase tracking-widest">Riwayat Buku</span>
+                    <h1 class="text-3xl sm:text-4xl font-extrabold mt-1">Buku yang Pernah Dilihat</h1>
+                    <p class="text-purple-200/70 mt-1">Temukan kembali buku yang pernah menarik perhatianmu.</p>
+                </div>
+                <a href="/katalog" class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition">
+                    <i class="fa-solid fa-compass"></i> Jelajahi Katalog
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <% if (books && books.length > 0) { %>
+            <!-- Stats bar -->
+            <div class="bg-white border border-gray-100 rounded-2xl px-6 py-4 mb-8 flex items-center justify-between shadow-sm">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <i class="fa-solid fa-clock-rotate-left text-purple-600 text-sm"></i>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-700">
+                        Menampilkan <strong class="text-gray-900"><%= books.length %> buku</strong> yang pernah kamu lihat
+                    </span>
+                </div>
+                <a href="/katalog" class="text-sm font-bold text-blue-600 hover:text-blue-800 transition flex items-center gap-1">
+                    Cari Buku Baru <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+
+            <!-- Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
+                <% books.forEach(book => { %>
+                    <a href="/katalog/<%= book.id %>" class="book-card group bg-white rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 flex flex-col hover:-translate-y-2 transform relative">
+                        <!-- Time badge -->
+                        <div class="absolute top-2 left-2 z-20 bg-black/60 backdrop-blur-sm text-white text-xs px-2.5 py-1 rounded-full flex items-center gap-1">
+                            <i class="fa-regular fa-clock text-xs"></i> <%= book.timeAgo %>
+                        </div>
+
+                        <div class="relative pt-[145%] w-full bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
+                            <% if (book.image_path) { %>
+                                <img src="<%= book.image_path %>" alt="<%= book.title %>" class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                            <% } else { %>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <i class="fa-solid fa-book text-gray-300 text-5xl"></i>
+                                </div>
+                            <% } %>
+                            <div class="book-overlay absolute inset-0 bg-purple-900/60 flex items-end justify-center pb-4">
+                                <span class="bg-white text-purple-700 text-xs font-bold px-4 py-2 rounded-full shadow-lg transform translate-y-2 group-hover:translate-y-0 transition">
+                                    <i class="fa-solid fa-eye mr-1"></i> Lihat Lagi
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="p-4 flex-grow flex flex-col">
+                            <span class="text-xs font-bold text-purple-500 uppercase tracking-wider mb-1.5"><%= book.category_name || '—' %></span>
+                            <h3 class="text-sm font-bold text-gray-900 leading-snug line-clamp-2 flex-grow"><%= book.title %></h3>
+                        </div>
+                    </a>
+                <% }) %>
+            </div>
+        <% } else { %>
+            <!-- Empty State -->
+            <div class="text-center py-24 max-w-lg mx-auto">
+                <div class="relative w-32 h-32 mx-auto mb-8">
+                    <div class="absolute inset-0 bg-purple-100 rounded-3xl transform rotate-6"></div>
+                    <div class="absolute inset-0 bg-blue-100 rounded-3xl transform -rotate-3"></div>
+                    <div class="absolute inset-0 bg-white rounded-3xl border-2 border-gray-100 flex items-center justify-center shadow-lg">
+                        <i class="fa-solid fa-clock-rotate-left text-4xl text-gray-300"></i>
+                    </div>
+                </div>
+                <h2 class="text-2xl font-extrabold text-gray-800 mb-3">Belum Ada Riwayat</h2>
+                <p class="text-gray-500 text-base leading-relaxed mb-8">
+                    Kamu belum pernah melihat buku apa pun. Ayo mulai mengeksplorasi koleksi perpustakaan kami dan temukan buku favoritmu!
+                </p>
+                <a href="/katalog" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-4 rounded-2xl transition shadow-lg shadow-blue-200 hover:-translate-y-0.5 transform duration-200">
+                    <i class="fa-solid fa-compass"></i> Mulai Eksplorasi
+                </a>
+            </div>
+        <% } %>
+    </div>
+</div>
+
+<style>
+.book-card:hover .book-overlay { opacity: 1; }
+.book-overlay { transition: opacity 0.3s ease; opacity: 0; }
+</style>

@@ -1,0 +1,111 @@
+<div class="min-h-screen bg-gray-50">
+    <!-- Page header -->
+    <div class="bg-gradient-to-br from-gray-900 to-blue-900 text-white pt-28 pb-14 px-4">
+        <div class="max-w-7xl mx-auto text-center">
+            <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight mb-3">Katalog Buku</h1>
+            <p class="text-blue-200 text-lg max-w-xl mx-auto">Jelajahi seluruh koleksi perpustakaan kami dan temukan buku favoritmu.</p>
+
+            <!-- Search Bar -->
+            <form action="/katalog" method="GET" class="mt-8 max-w-2xl mx-auto">
+                <div class="flex gap-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-1.5">
+                    <div class="flex-1 flex items-center gap-3 px-4">
+                        <i class="fa-solid fa-search text-blue-300"></i>
+                        <input 
+                            type="text" 
+                            name="search" 
+                            placeholder="Cari judul atau ISBN..." 
+                            value="<%= search %>"
+                            class="w-full bg-transparent text-white placeholder-blue-200/60 outline-none text-sm font-medium"
+                        >
+                    </div>
+                    <button type="submit" class="bg-blue-500 hover:bg-blue-400 text-white px-6 py-3 rounded-xl font-bold text-sm transition shadow-lg flex-shrink-0">
+                        Cari
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+        <!-- Active search indicator -->
+        <% if (search) { %>
+        <div class="flex items-center justify-between mb-6 bg-blue-50 border border-blue-200 rounded-xl px-5 py-3">
+            <span class="text-blue-800 text-sm font-medium">
+                <i class="fa-solid fa-magnifying-glass mr-2"></i>
+                Hasil pencarian untuk: <strong>"<%= search %>"</strong>
+            </span>
+            <a href="/katalog" class="text-blue-600 hover:text-blue-800 text-sm font-bold flex items-center gap-1">
+                <i class="fa-solid fa-xmark"></i> Hapus
+            </a>
+        </div>
+        <% } %>
+
+        <!-- Grid Buku -->
+        <% if (books.length > 0) { %>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
+                <% books.forEach(book => { %>
+                    <a href="/katalog/<%= book.id %>" class="book-card group bg-white rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 flex flex-col hover:-translate-y-2 transform">
+                        <div class="relative pt-[145%] w-full bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
+                            <% if (book.image_path) { %>
+                                <img src="<%= book.image_path %>" alt="<%= book.title %>" class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                            <% } else { %>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <i class="fa-solid fa-book text-gray-300 text-5xl"></i>
+                                </div>
+                            <% } %>
+                            <div class="book-overlay absolute inset-0 bg-blue-900/60 flex items-end justify-center pb-4">
+                                <span class="bg-white text-blue-700 text-xs font-bold px-4 py-2 rounded-full shadow-lg transform translate-y-2 group-hover:translate-y-0 transition">
+                                    <i class="fa-solid fa-eye mr-1"></i> Lihat Detail
+                                </span>
+                            </div>
+                        </div>
+                        <div class="p-4 flex-grow flex flex-col">
+                            <span class="text-xs font-bold text-blue-500 uppercase tracking-wider mb-1.5"><%= book.category_name || '—' %></span>
+                            <h3 class="text-sm font-bold text-gray-900 leading-snug line-clamp-2 flex-grow"><%= book.title %></h3>
+                            <p class="text-xs text-gray-400 mt-2 font-mono">ISBN: <%= book.isbn %></p>
+                        </div>
+                    </a>
+                <% }) %>
+            </div>
+
+            <!-- Pagination -->
+            <% if (totalPage > 1) { %>
+                <div class="flex justify-center items-center mt-14 gap-2 flex-wrap">
+                    <% if (page > 1) { %>
+                        <a href="/katalog?page=<%= page - 1 %>&search=<%= search %>" class="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition">
+                            <i class="fa-solid fa-chevron-left text-xs"></i>
+                        </a>
+                    <% } %>
+                    <% for(let i = 1; i <= totalPage; i++) { %>
+                        <a href="/katalog?page=<%= i %>&search=<%= search %>" class="w-10 h-10 flex items-center justify-center rounded-xl border text-sm font-bold transition <%= page === i ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200' : 'bg-white text-gray-600 border-gray-200 hover:bg-blue-50 hover:border-blue-300' %>">
+                            <%= i %>
+                        </a>
+                    <% } %>
+                    <% if (page < totalPage) { %>
+                        <a href="/katalog?page=<%= page + 1 %>&search=<%= search %>" class="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition">
+                            <i class="fa-solid fa-chevron-right text-xs"></i>
+                        </a>
+                    <% } %>
+                </div>
+            <% } %>
+        <% } else { %>
+            <div class="text-center py-24">
+                <div class="w-28 h-28 bg-gray-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                    <i class="fa-solid fa-book-open text-gray-300 text-5xl"></i>
+                </div>
+                <h2 class="text-2xl font-extrabold text-gray-800 mb-2">Tidak Ada Buku Ditemukan</h2>
+                <p class="text-gray-500 mb-8 max-w-md mx-auto">Coba gunakan kata kunci yang berbeda atau jelajahi seluruh koleksi kami.</p>
+                <a href="/katalog" class="inline-flex items-center gap-2 bg-blue-600 text-white font-bold px-6 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg">
+                    <i class="fa-solid fa-list"></i> Lihat Semua Buku
+                </a>
+            </div>
+        <% } %>
+    </div>
+</div>
+
+<style>
+.book-card:hover .book-overlay { opacity: 1; }
+.book-overlay { transition: opacity 0.3s ease; opacity: 0; }
+</style>

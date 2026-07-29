@@ -6,10 +6,12 @@
   </div>
   <div class="flex items-center gap-4">
     <!-- Logout -->
-    <a href="#" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-200 flex items-center gap-2">
-      <i class="fa-solid fa-right-from-bracket"></i>
-      <span class="hidden md:inline">Logout</span>
-    </a>
+      <form action="/logout" method="POST" style="display:inline;">
+        <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-200 flex items-center gap-2">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span class="hidden md:inline">Logout</span>
+        </button>
+      </form>
   </div>
 </nav>
 

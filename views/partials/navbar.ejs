@@ -12,37 +12,43 @@
   <!-- Menu -->
   <ul class="space-y-2">
     <li>
-      <a href="/dashboard" class="flex items-center gap-3 p-3 hover:bg-gray-700 rounded-lg transition duration-200">
+      <a href="/dashboard" class="relative flex items-center gap-3 p-3 rounded-lg transition-all duration-300 <%= path.startsWith('/dashboard') ? 'bg-blue-600 text-white shadow-md' : 'text-gray-300 hover:bg-gray-700/60 hover:text-white hover:translate-x-1' %>">
+        <% if (path.startsWith('/dashboard')) { %> <span class="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-white rounded-r-md"></span> <% } %>
         <i class="fa-solid fa-house w-5"></i>
         <span class="font-medium">Dashboard</span>
       </a>
     </li>
     <li>
-      <a href="/users" class="flex items-center gap-3 p-3 hover:bg-gray-500 rounded-lg transition duration-200">
+      <a href="/users" class="relative flex items-center gap-3 p-3 rounded-lg transition-all duration-300 <%= path.startsWith('/users') ? 'bg-blue-600 text-white shadow-md' : 'text-gray-300 hover:bg-gray-700/60 hover:text-white hover:translate-x-1' %>">
+        <% if (path.startsWith('/users')) { %> <span class="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-white rounded-r-md"></span> <% } %>
         <i class="fa-solid fa-users w-5"></i>
         <span class="font-medium">Users</span>
       </a>
     </li>
     <li>
-      <a href="/categories" class="flex items-center gap-3 p-3 hover:bg-gray-700 rounded-lg transition duration-200">
+      <a href="/categories" class="relative flex items-center gap-3 p-3 rounded-lg transition-all duration-300 <%= path.startsWith('/categories') ? 'bg-blue-600 text-white shadow-md' : 'text-gray-300 hover:bg-gray-700/60 hover:text-white hover:translate-x-1' %>">
+        <% if (path.startsWith('/categories')) { %> <span class="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-white rounded-r-md"></span> <% } %>
         <i class="fa-solid fa-tags w-5"></i>
         <span class="font-medium">Kategori</span>
       </a>
     </li>
     <li>
-      <a href="/books" class="flex items-center gap-3 p-3 hover:bg-gray-700 rounded-lg transition duration-200">
+      <a href="/books" class="relative flex items-center gap-3 p-3 rounded-lg transition-all duration-300 <%= path.startsWith('/books') ? 'bg-blue-600 text-white shadow-md' : 'text-gray-300 hover:bg-gray-700/60 hover:text-white hover:translate-x-1' %>">
+        <% if (path.startsWith('/books')) { %> <span class="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-white rounded-r-md"></span> <% } %>
         <i class="fa-solid fa-book w-5"></i>
         <span class="font-medium">Buku</span>
       </a>
     </li>
     <li>
-      <a href="/bookings" class="flex items-center gap-3 p-3 hover:bg-blue-700 rounded-lg transition duration-200 bg-blue-600">
+      <a href="/bookings" class="relative flex items-center gap-3 p-3 rounded-lg transition-all duration-300 <%= path.startsWith('/bookings') ? 'bg-blue-600 text-white shadow-md' : 'text-gray-300 hover:bg-gray-700/60 hover:text-white hover:translate-x-1' %>">
+        <% if (path.startsWith('/bookings')) { %> <span class="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-white rounded-r-md"></span> <% } %>
         <i class="fa-solid fa-handshake w-5"></i>
         <span class="font-medium">Peminjaman</span>
       </a>
     </li>
     <li>
-      <a href="/settings" class="flex items-center gap-3 p-3 hover:bg-gray-700 rounded-lg transition duration-200">
+      <a href="/settings" class="relative flex items-center gap-3 p-3 rounded-lg transition-all duration-300 <%= path.startsWith('/settings') ? 'bg-blue-600 text-white shadow-md' : 'text-gray-300 hover:bg-gray-700/60 hover:text-white hover:translate-x-1' %>">
+        <% if (path.startsWith('/settings')) { %> <span class="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-white rounded-r-md"></span> <% } %>
         <i class="fa-solid fa-gear w-5"></i>
         <span class="font-medium">Settings</span>
       </a>  

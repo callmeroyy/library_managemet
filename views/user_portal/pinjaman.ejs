@@ -1,0 +1,182 @@
+<div class="min-h-screen bg-gray-50">
+    <!-- Welcome Header -->
+    <div class="bg-gradient-to-br from-gray-900 via-blue-900 to-blue-800 text-white pt-28 pb-16 px-4 relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle at 20% 50%, #3b82f6 0%, transparent 50%), radial-gradient(circle at 80% 20%, #6366f1 0%, transparent 50%);"></div>
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                    <span class="text-blue-300 text-sm font-bold uppercase tracking-widest">Dashboard</span>
+                    <h1 class="text-3xl sm:text-4xl font-extrabold mt-1">
+                        Halo, <span class="text-blue-300"><%= locals.user ? locals.user.email.split('@')[0] : 'Member' %></span>! 👋
+                    </h1>
+                    <p class="text-blue-200/70 mt-1">Berikut adalah ringkasan aktivitas perpustakaanmu.</p>
+                </div>
+                <a href="/katalog" class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition">
+                    <i class="fa-solid fa-compass"></i> Jelajahi Katalog
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <!-- ===== METRIC CARDS ===== -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
+            <!-- Dipinjam -->
+            <div class="relative bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden p-6 hover:shadow-lg transition group">
+                <div class="absolute inset-0 bg-gradient-to-br from-blue-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div class="relative z-10 flex items-start justify-between">
+                    <div>
+                        <p class="text-sm font-bold text-gray-500 uppercase tracking-wider">Sedang Dipinjam</p>
+                        <p class="text-5xl font-black text-gray-900 mt-2"><%= totalDipinjam %></p>
+                        <p class="text-sm text-gray-400 mt-2">Buku belum dikembalikan</p>
+                    </div>
+                    <div class="w-14 h-14 bg-blue-100 group-hover:bg-blue-600 rounded-2xl flex items-center justify-center transition flex-shrink-0">
+                        <i class="fa-solid fa-book-open text-blue-600 group-hover:text-white text-2xl transition"></i>
+                    </div>
+                </div>
+                <div class="mt-5 h-1.5 bg-gray-100 rounded-full">
+                    <div class="h-1.5 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full" style="width: <%= Math.min((totalDipinjam / (totalDipinjam + totalDikembalikan + 1)) * 100, 100).toFixed(0) %>%"></div>
+                </div>
+            </div>
+
+            <!-- Dikembalikan -->
+            <div class="relative bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden p-6 hover:shadow-lg transition group">
+                <div class="absolute inset-0 bg-gradient-to-br from-emerald-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div class="relative z-10 flex items-start justify-between">
+                    <div>
+                        <p class="text-sm font-bold text-gray-500 uppercase tracking-wider">Telah Dikembalikan</p>
+                        <p class="text-5xl font-black text-gray-900 mt-2"><%= totalDikembalikan %></p>
+                        <p class="text-sm text-gray-400 mt-2">Buku selesai dipinjam</p>
+                    </div>
+                    <div class="w-14 h-14 bg-emerald-100 group-hover:bg-emerald-600 rounded-2xl flex items-center justify-center transition flex-shrink-0">
+                        <i class="fa-solid fa-circle-check text-emerald-600 group-hover:text-white text-2xl transition"></i>
+                    </div>
+                </div>
+                <div class="mt-5 h-1.5 bg-gray-100 rounded-full">
+                    <div class="h-1.5 bg-gradient-to-r from-emerald-400 to-emerald-600 rounded-full" style="width: <%= Math.min((totalDikembalikan / (totalDipinjam + totalDikembalikan + 1)) * 100, 100).toFixed(0) %>%"></div>
+                </div>
+            </div>
+
+            <!-- Total Denda -->
+            <div class="relative bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden p-6 hover:shadow-lg transition group">
+                <div class="absolute inset-0 bg-gradient-to-br from-red-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div class="relative z-10 flex items-start justify-between">
+                    <div>
+                        <p class="text-sm font-bold text-gray-500 uppercase tracking-wider">Total Denda</p>
+                        <p class="text-3xl sm:text-4xl font-black text-gray-900 mt-2 leading-tight">
+                            Rp<span class="text-2xl sm:text-3xl"> <%= totalDenda.toLocaleString('id-ID') %></span>
+                        </p>
+                        <p class="text-sm mt-2 <%= totalDenda > 0 ? 'text-red-500 font-semibold' : 'text-gray-400' %>">
+                            <% if (totalDenda > 0) { %>
+                                <i class="fa-solid fa-triangle-exclamation mr-1"></i> Ada denda yang harus dilunasi
+                            <% } else { %>
+                                <i class="fa-solid fa-check mr-1"></i> Tidak ada denda
+                            <% } %>
+                        </p>
+                    </div>
+                    <div class="w-14 h-14 bg-red-100 group-hover:bg-red-500 rounded-2xl flex items-center justify-center transition flex-shrink-0">
+                        <i class="fa-solid fa-money-bill-wave text-red-500 group-hover:text-white text-2xl transition"></i>
+                    </div>
+                </div>
+                <div class="mt-5 h-1.5 bg-gray-100 rounded-full">
+                    <div class="h-1.5 bg-gradient-to-r from-red-400 to-red-600 rounded-full" style="width: <%= totalDenda > 0 ? '75' : '0' %>%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== ACTIVE LOANS TABLE ===== -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-5 flex items-center justify-between border-b border-gray-100 bg-gray-50/50">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <i class="fa-solid fa-list-ul text-blue-600 text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-gray-900">Pinjaman Aktif</h3>
+                        <p class="text-xs text-gray-400">Buku yang sedang Anda pinjam saat ini</p>
+                    </div>
+                </div>
+                <span class="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full"><%= activeLoans.length %> Pinjaman</span>
+            </div>
+
+            <% if (activeLoans && activeLoans.length > 0) { %>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-100">
+                        <thead>
+                            <tr class="bg-gray-50/80">
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Judul Buku</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Dipinjam</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Batas Kembali</th>
+                                <th class="px-6 py-3 text-center text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50">
+                            <% activeLoans.forEach(loan => { %>
+                                <tr class="hover:bg-gray-50 transition">
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                <i class="fa-solid fa-book text-blue-400 text-sm"></i>
+                                            </div>
+                                            <span class="text-sm font-semibold text-gray-900 leading-tight"><%= loan.books %></span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= loan.startDate %></td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold <%= loan.isLate ? 'text-red-600' : 'text-gray-800' %>">
+                                        <%= loan.endDate %>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                                        <% if (loan.isLate) { %>
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-full bg-red-100 text-red-700 border border-red-200">
+                                                <i class="fa-solid fa-triangle-exclamation"></i> Terlambat <%= loan.daysLate %> Hari
+                                            </span>
+                                        <% } else { %>
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">
+                                                <i class="fa-solid fa-check"></i> Tepat Waktu
+                                            </span>
+                                        <% } %>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            <% } else { %>
+                <div class="text-center py-16 px-4">
+                    <div class="w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <i class="fa-regular fa-face-smile-beam text-blue-400 text-4xl"></i>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-gray-800 mb-1">Tidak Ada Pinjaman Aktif</h3>
+                    <p class="text-gray-400 max-w-sm mx-auto text-sm mb-6">Kamu tidak sedang meminjam buku apa pun. Yuk, mulai eksplorasi koleksi perpustakaan!</p>
+                    <a href="/katalog" class="inline-flex items-center gap-2 bg-blue-600 text-white font-bold px-6 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-200 text-sm">
+                        <i class="fa-solid fa-compass"></i> Jelajahi Katalog
+                    </a>
+                </div>
+            <% } %>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+            <a href="/user/riwayat" class="flex items-center gap-4 bg-white border border-gray-100 rounded-2xl p-5 hover:border-blue-300 hover:shadow-lg transition group">
+                <div class="w-12 h-12 bg-purple-100 group-hover:bg-purple-600 rounded-xl flex items-center justify-center transition">
+                    <i class="fa-solid fa-clock-rotate-left text-purple-600 group-hover:text-white text-xl transition"></i>
+                </div>
+                <div>
+                    <h4 class="font-bold text-gray-900">Riwayat Buku</h4>
+                    <p class="text-sm text-gray-400">Lihat buku yang pernah kamu baca</p>
+                </div>
+                <i class="fa-solid fa-arrow-right text-gray-300 group-hover:text-blue-500 ml-auto transition"></i>
+            </a>
+            <a href="/katalog" class="flex items-center gap-4 bg-white border border-gray-100 rounded-2xl p-5 hover:border-blue-300 hover:shadow-lg transition group">
+                <div class="w-12 h-12 bg-blue-100 group-hover:bg-blue-600 rounded-xl flex items-center justify-center transition">
+                    <i class="fa-solid fa-book-open text-blue-600 group-hover:text-white text-xl transition"></i>
+                </div>
+                <div>
+                    <h4 class="font-bold text-gray-900">Katalog Buku</h4>
+                    <p class="text-sm text-gray-400">Jelajahi semua koleksi perpustakaan</p>
+                </div>
+                <i class="fa-solid fa-arrow-right text-gray-300 group-hover:text-blue-500 ml-auto transition"></i>
+            </a>
+        </div>
+    </div>
+</div>
