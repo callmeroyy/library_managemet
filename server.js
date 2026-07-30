@@ -1069,10 +1069,10 @@ app.get("/bookings", authMiddleware, adminAuth, (req, res) => {
       JOIN users ON users.id = bookings.user_id
       JOIN detail_bookings ON detail_bookings.booking_id = bookings.id
       JOIN books ON books.id = detail_bookings.book_id
-      WHERE bookings.actual_return_date IS NULL
+      WHERE 1=1
       ${keyword ? "AND (users.name LIKE ? OR books.title LIKE ?)" : ""}
       GROUP BY bookings.id
-      ORDER BY bookings.id
+      ORDER BY bookings.id DESC
       LIMIT ? OFFSET ?
 `;
       queryCount = `
@@ -1082,7 +1082,7 @@ app.get("/bookings", authMiddleware, adminAuth, (req, res) => {
       JOIN users ON users.id = bookings.user_id
       JOIN detail_bookings ON detail_bookings.booking_id = bookings.id
       JOIN books ON books.id = detail_bookings.book_id
-      WHERE bookings.actual_return_date IS NULL
+      WHERE 1=1
       ${keyword ? "AND (users.name LIKE ? OR books.title LIKE ?)" : ""}
 `;
       queryParams = keyword ? [keywordLike, keywordLike, limit, offset] : [limit, offset];
@@ -1176,6 +1176,12 @@ app.get("/bookings", authMiddleware, adminAuth, (req, res) => {
 
               if (!actual) {
                 r.status = "Dipinjam";
+                // Booking aktif: estimasi denda dari keterlambatan skrg (tapi jangan ditimpa kalo udah ada penalty_fee dari return)
+                if (!r.denda && end.isBefore(dayjs())) {
+                  r.daysLate = dayjs().diff(end, "day");
+                  r.estimatedPenalty = true;
+                  // Jangan set r.denda karena belum final — kita tampilkan info "Terlambat X hari"
+                }
               } else if (actual.isAfter(end)) {
                 r.status = "Terlambat";
               } else {
@@ -1361,47 +1367,32 @@ app.get("/bookings/returnBook", authMiddleware, adminAuth, (req, res) => {
         const endDate = end.format("D MMMM YYYY");
         const actualDate = actual.format("D MMMM YYYY");
 
-        if (actual.isAfter(end)) {
-          DB.query("SELECT FORMAT(penalty_fee, 0, 'id_ID') AS penalty_fee FROM settings LIMIT 1", (err, penaltyFee) => {
-            if (err) {
-              console.error("Error get penalty fee:", err);
-              return res.status(500).send("Gagal ambil fee");
-            }
+        // Ambil penalty rate sebagai number
+        DB.query("SELECT COALESCE(penalty_fee, 0) AS penalty_rate FROM settings LIMIT 1", (err, settingResult) => {
+          if (err) {
+            console.error("Error get penalty fee:", err);
+            return res.status(500).send("Gagal ambil fee");
+          }
 
-            const dayPenalty = actual.diff(end, `day`);
+          const penaltyRate = Number(settingResult[0].penalty_rate);
+          const dayPenalty = actual.isAfter(end) ? actual.diff(end, `day`) : 0;
+          const totalDenda = dayPenalty * Number(result[0].totalBooks) * penaltyRate;
 
-            const format = Number(dayPenalty) * Number(result[0].totalBooks) * Number(penaltyFee[0].penalty_fee.replace(/\./g, ""));
-
-            const fee = format.toLocaleString("id-ID");
-            res.render("layout", {
-              content: "bookings/returnBookings",
-              id,
-              name: result[0].name,
-              totalBooks: result[0].totalBooks,
-              books: result,
-              endDate,
-              startDate,
-              actualDate,
-              dayPenalty,
-              fee,
-              penalty_fee: penaltyFee[0].penalty_fee,
-              actual,
-              end,
-            });
+          res.render("layout", {
+            content: "bookings/returnBookings",
+            id,
+            name: result[0].name,
+            totalBooks: result[0].totalBooks,
+            books: result,
+            endDate,
+            startDate,
+            actualDate,
+            dayPenalty,
+            fee: totalDenda.toLocaleString("id-ID"),
+            penalty_fee: penaltyRate.toLocaleString("id-ID"),
+            actual,
+            end,
           });
-          return;
-        }
-        res.render("layout", {
-          content: "bookings/returnBookings",
-          id,
-          name: result[0].name,
-          books: result,
-          endDate,
-          startDate,
-          actualDate,
-          penalty_fee: 0,
-          actual,
-          end,
         });
       }
     );
@@ -1419,17 +1410,36 @@ app.post("/bookings/returnBook", authMiddleware, adminAuth, (req, res) => {
     const safeFormat = format ? String(format) : "0";
     const fee = safeFormat.replace(/[.,-]/g, "");
 
-    DB.query("UPDATE bookings SET actual_return_date = NOW() WHERE  id = ?", [id], (err) => {
+    DB.beginTransaction((err) => {
       if (err) {
-        console.error("Error return book:", err);
-        return res.status(500).send("Gagal mengembalikan buku.");
+        console.error("Error begin transaction:", err);
+        return res.status(500).send("Gagal memulai transaksi.");
       }
-      DB.query("UPDATE bookings SET penalty_fee = ? WHERE id = ?", [fee, id], (err) => {
+
+      DB.query("UPDATE bookings SET actual_return_date = NOW() WHERE id = ?", [id], (err) => {
         if (err) {
-          console.error("Gagal dalam insert penalty_fee", err);
-          return res.status(500).send("gagal insert fee");
+          return DB.rollback(() => {
+            console.error("Error return book:", err);
+            res.status(500).send("Gagal mengembalikan buku.");
+          });
         }
-        res.redirect("/bookings");
+        DB.query("UPDATE bookings SET penalty_fee = ? WHERE id = ?", [fee, id], (err) => {
+          if (err) {
+            return DB.rollback(() => {
+              console.error("Gagal dalam insert penalty_fee", err);
+              res.status(500).send("Gagal insert fee");
+            });
+          }
+          DB.commit((err) => {
+            if (err) {
+              return DB.rollback(() => {
+                console.error("Error commit:", err);
+                res.status(500).send("Gagal menyelesaikan transaksi.");
+              });
+            }
+            res.redirect("/bookings");
+          });
+        });
       });
     });
   } catch (err) {

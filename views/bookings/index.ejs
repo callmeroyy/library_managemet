@@ -120,6 +120,10 @@
                           <i class="fa-solid fa-coins"></i> Rp<%= result.denda.toLocaleString('id-ID') %>
                         </span>
                       <% } %>
+                    <% } else if (result.estimatedPenalty) { %>
+                      <span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full bg-red-50 text-red-500 border border-red-200">
+                        <i class="fa-solid fa-clock"></i> Terlambat <%= result.daysLate %> hari
+                      </span>
                     <% } else { %>
                       <span class="text-xs text-gray-400">—</span>
                     <% } %>
