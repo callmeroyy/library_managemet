@@ -215,7 +215,7 @@ app.get("/categories/create", authMiddleware, adminAuth, (req, res) => {
 });
 
 // CREATE POST
-app.post("/categories/create", (req, res) => {
+app.post("/categories/create", authMiddleware, adminAuth, (req, res) => {
   try {
     const newKategori = req.body.newKategori.trim();
 
@@ -298,7 +298,7 @@ app.post("/categories/update", authMiddleware, adminAuth, (req, res) => {
       });
     }
 
-    DB.query("SELECT * FROM categories WHERE name = ?", [name], (err, result) => {
+    DB.query("SELECT * FROM categories WHERE name = ? AND id != ?", [name, id], (err, result) => {
       if (err) {
         console.error("Error check category:", err);
         return res.status(500).send("Error saat pengecekan data.");
@@ -335,16 +335,18 @@ app.get("/categories", authMiddleware, adminAuth, (req, res) => {
     const limit = 6;
     const offset = (page - 1) * limit;
 
-    let query = `SELECT * FROM categories WHERE name LIKE '%${keyword}%' ORDER BY id ASC LIMIT ${limit} OFFSET ${offset}`;
-
-    let queryCount = `SELECT COUNT(*) AS total FROM categories WHERE name LIKE '%${keyword}%'`;
-
-    DB.query(query, (err, keywordResult) => {
-      if (err) {
-        console.error("Error get categories:", err);
-        return res.send("Ada error!");
-      }
-      DB.query(queryCount, (err, countResult) => {
+    DB.query(
+      "SELECT * FROM categories WHERE name LIKE ? ORDER BY id ASC LIMIT ? OFFSET ?",
+      [`%${keyword}%`, limit, offset],
+      (err, keywordResult) => {
+        if (err) {
+          console.error("Error get categories:", err);
+          return res.send("Ada error!");
+        }
+        DB.query(
+          "SELECT COUNT(*) AS total FROM categories WHERE name LIKE ?",
+          [`%${keyword}%`],
+          (err, countResult) => {
         if (err) {
           console.error("Error count categories:", err);
           return res.status(500).send("Terjadi kesalahan pada server.");
@@ -427,22 +429,41 @@ app.get("/users", authMiddleware, adminAuth, (req, res) => {
     const limit = 5;
     const offset = (page - 1) * limit;
 
-    let query = `SELECT * FROM users WHERE role = 'user' AND  (name LIKE '%${search}%' OR email LIKE '%${search}%') `;
-    let queryCount = `SELECT COUNT(*) AS total FROM users WHERE role = 'user' AND (name LIKE '%${search}%' OR email LIKE '%${search}%')`;
+    const params = [];
+    let whereClause = "WHERE role = ?";
+    params.push("user");
 
-    if (status != "all") {
-      query += ` AND is_active=${status === "active" ? 1 : 0} `;
-      queryCount += ` AND is_active=${status === "active" ? 1 : 0}`;
+    if (search) {
+      whereClause += " AND (name LIKE ? OR email LIKE ?)";
+      params.push(`%${search}%`, `%${search}%`);
     }
-    query += ` ORDER BY id ASC LIMIT ${limit} OFFSET ${offset}`;
-    console.log("🚀 ~ queryCount:", queryCount);
 
-    DB.query(query, (err, result) => {
+    if (status !== "all") {
+      whereClause += " AND is_active = ?";
+      params.push(status === "active" ? 1 : 0);
+    }
+
+    let query = `SELECT * FROM users ${whereClause} ORDER BY id ASC LIMIT ? OFFSET ?`;
+    let queryCount = `SELECT COUNT(*) AS total FROM users ${whereClause}`;
+    params.push(limit, offset);
+
+    DB.query(query, params, (err, result) => {
       if (err) {
         console.error("Error get users:", err);
         return res.status(500).send("Terjadi kesalahan pada server.");
       }
-      DB.query(queryCount, (err, countResult) => {
+
+      // Build params for count query (without limit/offset)
+      const countParams = [];
+      countParams.push("user");
+      if (search) {
+        countParams.push(`%${search}%`, `%${search}%`);
+      }
+      if (status !== "all") {
+        countParams.push(status === "active" ? 1 : 0);
+      }
+
+      DB.query(queryCount, countParams, (err, countResult) => {
         if (err) {
           console.error("Error count users:", err);
           return res.status(500).send("Terjadi kesalahan pada server.");
@@ -671,6 +692,21 @@ app.get("/books", authMiddleware, adminAuth, (req, res) => {
     const limit = 10;
     const offset = (page - 1) * limit;
 
+    const params = [];
+    const whereClauses = [];
+
+    if (search) {
+      whereClauses.push("(title LIKE ? OR isbn LIKE ?)");
+      params.push(`%${search}%`, `%${search}%`);
+    }
+
+    if (categoryId) {
+      whereClauses.push("category_id = ?");
+      params.push(categoryId);
+    }
+
+    const whereStr = whereClauses.length > 0 ? "WHERE " + whereClauses.join(" AND ") : "";
+
     let query = `
       SELECT 
         books.*,
@@ -684,19 +720,16 @@ app.get("/books", authMiddleware, adminAuth, (req, res) => {
     LEFT JOIN bookings 
         ON bookings.id = detail_bookings.booking_id
         AND bookings.actual_return_date IS NULL
-    WHERE(title LIKE '%${search}%' OR isbn LIKE '%${search}%')
+    ${whereStr}
+    GROUP BY books.id ORDER BY id ASC LIMIT ? OFFSET ?
 `;
 
-    let queryCount = `SELECT COUNT(*) AS total FROM books WHERE (title LIKE '%${search}%' OR isbn LIKE '%${search}%')`;
+    const countParams = [...params];
+    let queryCount = `SELECT COUNT(*) AS total FROM books ${whereStr}`;
 
-    if (categoryId) {
-      query += ` AND category_id=${categoryId} `;
-      queryCount += ` AND category_id=${categoryId}`;
-    }
+    const queryParams = [...params, limit, offset];
 
-    query += ` GROUP BY books.id ORDER BY id ASC LIMIT ${limit} OFFSET ${offset}`;
-
-    DB.query(query, (err, searchResult) => {
+    DB.query(query, queryParams, (err, searchResult) => {
       if (err) {
         console.error("Error mengambil data buku search:", err);
         return res.status(500).send("Terjadi kesalahan saat mengambil data");
@@ -706,7 +739,7 @@ app.get("/books", authMiddleware, adminAuth, (req, res) => {
           console.error("Error mengambil data buku:", err);
           return res.status(500).send("Terjadi kesalahan saat mengambil data");
         }
-        DB.query(queryCount, (err, countResult) => {
+        DB.query(queryCount, countParams, (err, countResult) => {
           if (err) {
             console.error("Error count books:", err);
             return res.status(500).send("Terjadi kesalahan pada server.");
@@ -1014,8 +1047,13 @@ app.get("/bookings", authMiddleware, adminAuth, (req, res) => {
     const limit = 5;
     const offset = (page - 1) * limit;
 
+    const keywordLike = keyword ? `%${keyword}%` : "";
+
     let query;
     let queryCount;
+    let queryParams;
+    let countParams;
+
     if (status == "") {
       query = `
       SELECT 
@@ -1024,13 +1062,19 @@ app.get("/bookings", authMiddleware, adminAuth, (req, res) => {
       bookings.start_date,
       bookings.end_date,
       bookings.actual_return_date,
+      bookings.penalty_fee,
+      COALESCE(bookings.penalty_paid, 0) AS penalty_paid,
       GROUP_CONCAT(books.title SEPARATOR ', ') AS books
       FROM bookings
       JOIN users ON users.id = bookings.user_id
       JOIN detail_bookings ON detail_bookings.booking_id = bookings.id
       JOIN books ON books.id = detail_bookings.book_id
-      WHERE bookings.actual_return_date IS NULL AND (users.name LIKE '%${keyword}%' OR books.title LIKE '%${keyword}%') GROUP BY bookings.id`;
-
+      WHERE bookings.actual_return_date IS NULL
+      ${keyword ? "AND (users.name LIKE ? OR books.title LIKE ?)" : ""}
+      GROUP BY bookings.id
+      ORDER BY bookings.id
+      LIMIT ? OFFSET ?
+`;
       queryCount = `
       SELECT 
       COUNT(DISTINCT bookings.id) AS totalBookings
@@ -1038,8 +1082,11 @@ app.get("/bookings", authMiddleware, adminAuth, (req, res) => {
       JOIN users ON users.id = bookings.user_id
       JOIN detail_bookings ON detail_bookings.booking_id = bookings.id
       JOIN books ON books.id = detail_bookings.book_id
-      WHERE bookings.actual_return_date IS NULL AND (users.name LIKE '%${keyword}%' OR books.title LIKE '%${keyword}%');
-      `;
+      WHERE bookings.actual_return_date IS NULL
+      ${keyword ? "AND (users.name LIKE ? OR books.title LIKE ?)" : ""}
+`;
+      queryParams = keyword ? [keywordLike, keywordLike, limit, offset] : [limit, offset];
+      countParams = keyword ? [keywordLike, keywordLike] : [];
     } else {
       if (status == "users") {
         query = ` 
@@ -1048,16 +1095,19 @@ app.get("/bookings", authMiddleware, adminAuth, (req, res) => {
         users.id
         FROM users
         JOIN bookings ON users.id = bookings.user_id
-        WHERE (users.name LIKE '%${keyword}%' OR users.email LIKE '%${keyword}%')
+        WHERE (users.name LIKE ? OR users.email LIKE ?)
         ORDER BY users.id ASC
-        `;
+        LIMIT ? OFFSET ?
+`;
         queryCount = `
         SELECT 
         COUNT(DISTINCT users.id) AS totalBookings
         FROM users
         JOIN bookings ON users.id = bookings.user_id
-        WHERE (users.name LIKE '%${keyword}%' OR users.email LIKE '%${keyword}%')
-        `;
+        WHERE (users.name LIKE ? OR users.email LIKE ?)
+`;
+        queryParams = [keywordLike, keywordLike, limit, offset];
+        countParams = [keywordLike, keywordLike];
       } else {
         query = `
         SELECT DISTINCT
@@ -1067,28 +1117,29 @@ app.get("/bookings", authMiddleware, adminAuth, (req, res) => {
         FROM books
         JOIN detail_bookings
         ON detail_bookings.book_id = books.id
-        WHERE (books.title LIKE '%${keyword}%' OR books.isbn LIKE '%${keyword}%')
+        WHERE (books.title LIKE ? OR books.isbn LIKE ?)
         ORDER BY books.id ASC
-        `;
+        LIMIT ? OFFSET ?
+`;
         queryCount = `
         SELECT 
         COUNT(DISTINCT books.id) AS totalBookings
         FROM books
         JOIN detail_bookings
         ON detail_bookings.book_id = books.id
-        WHERE (books.title LIKE '%${keyword}%' OR books.isbn LIKE '%${keyword}%')
-        `;
+        WHERE (books.title LIKE ? OR books.isbn LIKE ?)
+`;
+        queryParams = [keywordLike, keywordLike, limit, offset];
+        countParams = [keywordLike, keywordLike];
       }
     }
 
-    query += ` LIMIT ${limit} OFFSET ${offset}`;
-
-    DB.query(queryCount, (err, totalBookings) => {
+    DB.query(queryCount, countParams, (err, totalBookings) => {
       if (err) {
         console.error("Error get total bookings:", err);
         return res.status(500).send("Gagal ambil data");
       }
-      DB.query(query, (err, resultSearch) => {
+      DB.query(query, queryParams, (err, resultSearch) => {
         if (err) {
           console.error("Error get bookings:", err);
           return res.status(500).send("Gagal ambil data");
@@ -1115,6 +1166,10 @@ app.get("/bookings", authMiddleware, adminAuth, (req, res) => {
               r.startDate = dayjs(r.start_date).format("D MMMM YYYY");
               r.endDate = dayjs(r.end_date).format("D MMMM YYYY");
               r.actualReturnDate = r.actual_return_date ? dayjs(r.actual_return_date).format("D MMMM YYYY") : "-";
+
+              // Denda info
+              r.penaltyPaid = r.penalty_paid == 1;
+              r.denda = r.penalty_fee || 0;
 
               const end = dayjs(r.end_date);
               const actual = r.actual_return_date ? dayjs(r.actual_return_date) : null;
@@ -1219,23 +1274,49 @@ app.post("/bookings/create", authMiddleware, adminAuth, (req, res) => {
       });
       return;
     }
-    DB.query("INSERT INTO bookings (user_id, end_date, penalty_fee) VALUES (?,?,?) ", [user_id, end_date, penalty_fee], (err, result) => {
+
+    const books_id = Array.isArray(book_ids) ? book_ids : [book_ids];
+
+    // Use transaction to ensure atomicity
+    DB.beginTransaction((err) => {
       if (err) {
-        console.error("Error insert booking:", err);
-        return res.status(500).send("gagal membuat bookings");
+        console.error("Error begin transaction:", err);
+        return res.status(500).send("Gagal memulai transaksi.");
       }
-      const booking_id = result.insertId;
 
-      const books_id = Array.isArray(book_ids) ? book_ids : [book_ids];
-      let selesai = 0;
+      DB.query("INSERT INTO bookings (user_id, end_date, penalty_fee) VALUES (?,?,?)", [user_id, end_date, penalty_fee], (err, result) => {
+        if (err) {
+          return DB.rollback(() => {
+            console.error("Error insert booking:", err);
+            res.status(500).send("Gagal membuat booking");
+          });
+        }
 
-      books_id.forEach((book) => {
-        DB.query("INSERT INTO detail_bookings (book_id, booking_id) VALUES (?,?)", [book, booking_id], (err) => {
-          if (err) console.error("Gagal tambah detail:", err);
-          selesai++;
-          if (selesai === books_id.length) {
-            res.redirect("/bookings");
-          }
+        const booking_id = result.insertId;
+        let inserted = 0;
+
+        books_id.forEach((book) => {
+          DB.query("INSERT INTO detail_bookings (book_id, booking_id) VALUES (?,?)", [book, booking_id], (err) => {
+            if (err) {
+              return DB.rollback(() => {
+                console.error("Gagal tambah detail:", err);
+                res.status(500).send("Gagal menambahkan detail buku: " + (book.title || book));
+              });
+            }
+
+            inserted++;
+            if (inserted === books_id.length) {
+              DB.commit((err) => {
+                if (err) {
+                  return DB.rollback(() => {
+                    console.error("Error commit:", err);
+                    res.status(500).send("Gagal menyelesaikan transaksi.");
+                  });
+                }
+                res.redirect("/bookings");
+              });
+            }
+          });
         });
       });
     });
@@ -1379,20 +1460,25 @@ app.get("/bookings/user/:id", authMiddleware, adminAuth, (req, res) => {
     (err, result) => {
       if (err) {
         console.error(err);
-        return;
+        return res.status(500).send("Terjadi kesalahan pada server.");
       }
 
-      console.log("🚀 ~  result[0].is_active:", result[0].is_active);
+      if (!result || result.length === 0 || !result[0].start_date) {
+        return res.render("layout", {
+          content: "bookings/detailUser",
+          bookReturn: [],
+          result: [],
+          totalDipinjam: 0,
+        });
+      }
 
       let totalDipinjam = result.length;
-      if (result[0].start_date == null) {
-        totalDipinjam = 0;
-      }
 
       result.forEach((r) => {
+        if (!r.start_date) return;
         const dayStart = dayjs(r.start_date);
         const dayEnd = dayjs(r.end_date);
-        const dayActual = dayjs(r.actual_return_date);
+        const dayActual = r.actual_return_date ? dayjs(r.actual_return_date) : dayjs();
 
         r.startDate = dayjs(r.start_date).format("D MMMM YYYY");
         r.endDate = dayjs(r.end_date).format("D MMMM YYYY");
@@ -1462,7 +1548,7 @@ app.get("/bookings/user/:id", authMiddleware, adminAuth, (req, res) => {
   );
 });
 
-app.get("/bookings/book/:id", (req, res) => {
+app.get("/bookings/book/:id", authMiddleware, adminAuth, (req, res) => {
   const id = req.params.id;
 
   DB.query(
@@ -1642,20 +1728,24 @@ app.get("/katalog", optionalAuth, (req, res) => {
     const limit = 8;
     const offset = (page - 1) * limit;
 
+    const searchLike = search ? `%${search}%` : "";
+
     let query = `
       SELECT books.*, categories.name AS category_name
       FROM books
       LEFT JOIN categories ON books.category_id = categories.id
-      WHERE title LIKE '%${search}%' OR isbn LIKE '%${search}%'
+      WHERE title LIKE ? OR isbn LIKE ?
       ORDER BY books.id DESC
-      LIMIT ${limit} OFFSET ${offset}
+      LIMIT ? OFFSET ?
     `;
 
-    let queryCount = `SELECT COUNT(*) AS total FROM books WHERE title LIKE '%${search}%' OR isbn LIKE '%${search}%'`;
+    let queryCount = "SELECT COUNT(*) AS total FROM books WHERE title LIKE ? OR isbn LIKE ?";
+    const queryParams = [searchLike, searchLike, limit, offset];
+    const countParams = [searchLike, searchLike];
 
-    DB.query(query, (err, books) => {
+    DB.query(query, queryParams, (err, books) => {
       if (err) throw err;
-      DB.query(queryCount, (err, countResult) => {
+      DB.query(queryCount, countParams, (err, countResult) => {
         if (err) throw err;
         const totalPage = Math.ceil(countResult[0].total / limit);
         res.render("user_layout", {
@@ -1714,6 +1804,7 @@ app.get("/user/pinjaman", authMiddleware, userAuth, (req, res) => {
     // Get active loans (sedang dipinjam)
     const activeQuery = `
       SELECT bookings.id, bookings.start_date, bookings.end_date,
+             COALESCE(bookings.penalty_paid, 0) AS penalty_paid,
              GROUP_CONCAT(books.title SEPARATOR ', ') AS books
       FROM bookings
       JOIN detail_bookings ON detail_bookings.booking_id = bookings.id
@@ -1735,12 +1826,12 @@ app.get("/user/pinjaman", authMiddleware, userAuth, (req, res) => {
       DB.query(statsQuery, [userId, userId], (err, statsResult) => {
         if (err) throw err;
         
-        DB.query("SELECT FORMAT(penalty_fee, 0, 'id_ID') AS penalty_fee FROM settings LIMIT 1", (err, settingResult) => {
+        DB.query("SELECT COALESCE(penalty_fee, 0) AS penalty_fee FROM settings LIMIT 1", (err, settingResult) => {
           if (err) throw err;
           
           let penaltyRate = 0;
           if (settingResult.length > 0 && settingResult[0].penalty_fee) {
-            penaltyRate = Number(settingResult[0].penalty_fee.replace(/\\./g, ""));
+            penaltyRate = Number(settingResult[0].penalty_fee);
           }
           
           let totalDenda = 0;
@@ -1752,6 +1843,7 @@ app.get("/user/pinjaman", authMiddleware, userAuth, (req, res) => {
             
             loan.startDate = start.format("D MMMM YYYY");
             loan.endDate = end.format("D MMMM YYYY");
+            loan.penaltyPaid = loan.penalty_paid == 1;
             
             let diff = actual.diff(end, 'day');
             
@@ -1760,15 +1852,18 @@ app.get("/user/pinjaman", authMiddleware, userAuth, (req, res) => {
               loan.daysLate = diff;
               // estimate penalty based on total books in this booking
               const numBooks = loan.books.split(',').length;
-              totalDenda += diff * numBooks * penaltyRate;
+              // Hanya hitung denda yg belum dibayar
+              if (!loan.penaltyPaid) {
+                totalDenda += diff * numBooks * penaltyRate;
+              }
             } else {
               loan.isLate = false;
               loan.daysLate = 0;
             }
           });
 
-          // Add past penalties already stored in actual_return_date != NULL bookings
-          DB.query("SELECT SUM(penalty_fee) as accumulatedPenalty FROM bookings WHERE user_id = ? AND actual_return_date IS NOT NULL", [userId], (err, pastPenaltyRes) => {
+          // Add past unpaid penalties from returned bookings
+          DB.query("SELECT SUM(penalty_fee) as accumulatedPenalty FROM bookings WHERE user_id = ? AND actual_return_date IS NOT NULL AND (penalty_paid IS NULL OR penalty_paid = 0)", [userId], (err, pastPenaltyRes) => {
             if (!err && pastPenaltyRes[0].accumulatedPenalty) {
               totalDenda += Number(pastPenaltyRes[0].accumulatedPenalty);
             }
@@ -1829,6 +1924,114 @@ app.get("/user/riwayat", authMiddleware, userAuth, (req, res) => {
   }
 });
 
+// ==================== RIWAYAT PINJAMAN USER ====================
+app.get("/user/riwayat-pinjaman", authMiddleware, userAuth, (req, res) => {
+  try {
+    const userId = req.user.id;
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10;
+    const offset = (page - 1) * limit;
+
+    const query = `
+      SELECT bookings.id, bookings.start_date, bookings.end_date,
+             bookings.actual_return_date, bookings.penalty_fee,
+             COALESCE(bookings.penalty_paid, 0) AS penalty_paid,
+             GROUP_CONCAT(books.title SEPARATOR ', ') AS books,
+             GROUP_CONCAT(books.isbn SEPARATOR ', ') AS isbns
+      FROM bookings
+      JOIN detail_bookings ON detail_bookings.booking_id = bookings.id
+      JOIN books ON books.id = detail_bookings.book_id
+      WHERE bookings.user_id = ? AND bookings.actual_return_date IS NOT NULL
+      GROUP BY bookings.id
+      ORDER BY bookings.actual_return_date DESC
+      LIMIT ? OFFSET ?
+    `;
+
+    const countQuery = `
+      SELECT COUNT(DISTINCT bookings.id) AS total
+      FROM bookings
+      WHERE bookings.user_id = ? AND bookings.actual_return_date IS NOT NULL
+    `;
+
+    DB.query(query, [userId, limit, offset], (err, history) => {
+      if (err) throw err;
+
+      DB.query(countQuery, [userId], (err, countResult) => {
+        if (err) throw err;
+
+        const totalData = countResult[0].total;
+        const totalPage = Math.ceil(totalData / limit);
+
+        history.forEach((r) => {
+          const end = dayjs(r.end_date);
+          const actual = dayjs(r.actual_return_date);
+          r.startDate = r.start_date ? dayjs(r.start_date).format("D MMMM YYYY") : "-";
+          r.endDate = end.format("D MMMM YYYY");
+          r.actualReturnDate = actual.format("D MMMM YYYY");
+          r.penaltyPaid = r.penalty_paid == 1;
+
+          if (actual.isAfter(end)) {
+            r.status = "Terlambat";
+            r.daysLate = actual.diff(end, "day");
+          } else {
+            r.status = "Tepat Waktu";
+            r.daysLate = 0;
+          }
+        });
+
+        res.render("user_layout", {
+          content: "user_portal/riwayatPinjaman",
+          history,
+          page,
+          totalPage,
+          limit,
+        });
+      });
+    });
+  } catch (err) {
+    console.error("Error:", err);
+    res.status(500).send("Terjadi kesalahan pada server.");
+  }
+});
+
+// ==================== PAY PENALTY (ADMIN) ====================
+app.post("/bookings/pay-penalty", authMiddleware, adminAuth, (req, res) => {
+  try {
+    const id = req.body.id;
+    if (!id) return res.status(400).send("ID booking diperlukan.");
+    DB.query("UPDATE bookings SET penalty_paid = 1 WHERE id = ?", [id], (err) => {
+      if (err) {
+        console.error("Error pay penalty:", err);
+        return res.status(500).send("Gagal menandai pembayaran.");
+      }
+      // Redirect back
+      const referer = req.get("Referer") || "/bookings";
+      res.redirect(referer);
+    });
+  } catch (err) {
+    console.error("Error:", err);
+    res.status(500).send("Terjadi kesalahan pada server.");
+  }
+});
+
+// ==================== UNPAY PENALTY (ADMIN) ====================
+app.post("/bookings/unpay-penalty", authMiddleware, adminAuth, (req, res) => {
+  try {
+    const id = req.body.id;
+    if (!id) return res.status(400).send("ID booking diperlukan.");
+    DB.query("UPDATE bookings SET penalty_paid = 0 WHERE id = ?", [id], (err) => {
+      if (err) {
+        console.error("Error unpay penalty:", err);
+        return res.status(500).send("Gagal membatalkan pembayaran.");
+      }
+      const referer = req.get("Referer") || "/bookings";
+      res.redirect(referer);
+    });
+  } catch (err) {
+    console.error("Error:", err);
+    res.status(500).send("Terjadi kesalahan pada server.");
+  }
+});
 
 // ==================== SERVER START ====================
 app.listen(port, () => {

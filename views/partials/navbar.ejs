@@ -1,5 +1,5 @@
 <!-- Sidebar -->
-<aside id="sidebar" class="w-64 bg-gradient-to-b from-gray-800 to-gray-900 shadow-2xl h-screen p-6 pt-24 text-white fixed left-0 top-0">
+<aside id="sidebar" class="w-64 bg-gradient-to-b from-gray-800 to-gray-900 shadow-2xl h-screen p-6 pt-24 text-white fixed left-0 top-0 flex flex-col">
   <!-- Logo/Header -->
   <div class="text-center mb-8">
     <div class="bg-blue-500 w-16 h-16 rounded-full mx-auto mb-3 flex items-center justify-center">
@@ -10,7 +10,7 @@
   </div>
 
   <!-- Menu -->
-  <ul class="space-y-2">
+  <ul class="space-y-2 flex-1">
     <li>
       <a href="/dashboard" class="relative flex items-center gap-3 p-3 rounded-lg transition-all duration-300 <%= path.startsWith('/dashboard') ? 'bg-blue-600 text-white shadow-md' : 'text-gray-300 hover:bg-gray-700/60 hover:text-white hover:translate-x-1' %>">
         <% if (path.startsWith('/dashboard')) { %> <span class="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-white rounded-r-md"></span> <% } %>
@@ -54,4 +54,14 @@
       </a>  
     </li>
   </ul>
+
+  <!-- Logout di kiri bawah -->
+  <div class="border-t border-gray-700/50 pt-4 mt-4">
+    <form action="/logout" method="POST">
+      <button type="submit" class="flex items-center gap-3 w-full p-3 rounded-lg text-gray-400 hover:bg-red-600/20 hover:text-red-400 transition-all duration-300">
+        <i class="fa-solid fa-right-from-bracket w-5"></i>
+        <span class="font-medium">Logout</span>
+      </button>
+    </form>
+  </div>
 </aside>

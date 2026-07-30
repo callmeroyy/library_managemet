@@ -1,0 +1,128 @@
+<div class="min-h-screen bg-gray-50">
+    <!-- Page header -->
+    <div class="bg-gradient-to-br from-gray-900 via-emerald-900 to-teal-800 text-white pt-28 pb-14 px-4 relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle at 80% 50%, #10b981 0%, transparent 50%);"></div>
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                    <span class="text-emerald-300 text-sm font-bold uppercase tracking-widest">Riwayat Pinjaman</span>
+                    <h1 class="text-3xl sm:text-4xl font-extrabold mt-1">Histori Peminjaman Buku</h1>
+                    <p class="text-emerald-200/70 mt-1">Semua buku yang pernah kamu pinjam dan kembalikan.</p>
+                </div>
+                <a href="/katalog" class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition">
+                    <i class="fa-solid fa-compass"></i> Jelajahi Katalog
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <% if (history && history.length > 0) { %>
+            <!-- Stats bar -->
+            <div class="bg-white border border-gray-100 rounded-2xl px-6 py-4 mb-8 flex items-center justify-between shadow-sm">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+                        <i class="fa-solid fa-clock-rotate-left text-emerald-600 text-sm"></i>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-700">
+                        Menampilkan <strong class="text-gray-900"><%= (page - 1) * limit + history.length %></strong> riwayat peminjaman
+                    </span>
+                </div>
+            </div>
+
+            <!-- History Table -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-100">
+                        <thead>
+                            <tr class="bg-gray-50/80">
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Buku</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Dipinjam</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Dikembalikan</th>
+                                <th class="px-6 py-3 text-center text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">Denda</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50">
+                            <% history.forEach(r => { %>
+                                <tr class="hover:bg-gray-50 transition">
+                                    <td class="px-6 py-4">
+                                        <span class="text-sm font-semibold text-gray-900"><%= r.books %></span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= r.startDate %></td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= r.actualReturnDate %></td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                                        <% if (r.status === 'Terlambat') { %>
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-full bg-red-100 text-red-700 border border-red-200">
+                                                <i class="fa-solid fa-triangle-exclamation"></i> Terlambat <%= r.daysLate %> Hari
+                                            </span>
+                                        <% } else { %>
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">
+                                                <i class="fa-solid fa-check"></i> Tepat Waktu
+                                            </span>
+                                        <% } %>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                                        <% if (r.penalty_fee > 0) { %>
+                                            <% if (r.penaltyPaid) { %>
+                                                <span class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-full bg-green-100 text-green-700 border border-green-200">
+                                                    <i class="fa-solid fa-check-circle"></i> Lunas
+                                                </span>
+                                            <% } else { %>
+                                                <span class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-full bg-orange-100 text-orange-700 border border-orange-200">
+                                                    <i class="fa-solid fa-clock"></i> Rp<%= r.penalty_fee.toLocaleString('id-ID') %>
+                                                </span>
+                                            <% } %>
+                                        <% } else { %>
+                                            <span class="text-sm text-gray-400">—</span>
+                                        <% } %>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <% if (totalPage > 1) { %>
+            <div class="flex items-center justify-center mt-8 gap-2">
+                <% if (page > 1) { %>
+                    <a href="/user/riwayat-pinjaman?page=<%= page - 1 %>" class="px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-100 transition flex items-center justify-center">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </a>
+                <% } %>
+                <% for(let i = 1; i <= totalPage; i++) { %>
+                    <a href="/user/riwayat-pinjaman?page=<%= i %>" class="px-4 py-2 rounded-lg transition flex items-center justify-center font-semibold <%= i === page ? 'bg-emerald-600 text-white shadow-md' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-100' %>">
+                        <%= i %>
+                    </a>
+                <% } %>
+                <% if (page < totalPage) { %>
+                    <a href="/user/riwayat-pinjaman?page=<%= page + 1 %>" class="px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-100 transition flex items-center justify-center">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                <% } %>
+            </div>
+            <% } %>
+
+        <% } else { %>
+            <!-- Empty State -->
+            <div class="text-center py-24 max-w-lg mx-auto">
+                <div class="relative w-32 h-32 mx-auto mb-8">
+                    <div class="absolute inset-0 bg-emerald-100 rounded-3xl transform rotate-6"></div>
+                    <div class="absolute inset-0 bg-teal-100 rounded-3xl transform -rotate-3"></div>
+                    <div class="absolute inset-0 bg-white rounded-3xl border-2 border-gray-100 flex items-center justify-center shadow-lg">
+                        <i class="fa-solid fa-book-open text-4xl text-gray-300"></i>
+                    </div>
+                </div>
+                <h2 class="text-2xl font-extrabold text-gray-800 mb-3">Belum Ada Riwayat Pinjaman</h2>
+                <p class="text-gray-500 text-base leading-relaxed mb-8">
+                    Kamu belum pernah mengembalikan buku. Setelah buku dikembalikan, riwayat akan muncul di sini.
+                </p>
+                <a href="/katalog" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8 py-4 rounded-2xl transition shadow-lg shadow-emerald-200 hover:-translate-y-0.5 transform duration-200">
+                    <i class="fa-solid fa-compass"></i> Mulai Eksplorasi
+                </a>
+            </div>
+        <% } %>
+    </div>
+</div>
