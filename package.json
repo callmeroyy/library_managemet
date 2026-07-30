@@ -22,7 +22,9 @@
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.15.1"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/callmeroyy/library_managemet.git"
